@@ -71,3 +71,43 @@ export function validateSalary(salary, minWage = 1412) {
 
   return true;
 }
+
+/**
+ * Impede datas futuras e valida formato cronológico (YYYY-MM-DD).
+ * @param {string} date
+ * @returns {boolean}
+ */
+export function validateAdmissionDate(date) {
+  if (typeof date !== 'string' || date.trim().length === 0) {
+    throw new Error('A data de admissão é obrigatória.');
+  }
+
+  const trimmed = date.trim();
+  const isoRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+  const match = trimmed.match(isoRegex);
+  if (!match) {
+    throw new Error('A data de admissão deve estar no formato cronológico YYYY-MM-DD.');
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  const parsedDate = new Date(Date.UTC(year, month - 1, day));
+  if (
+    parsedDate.getUTCFullYear() !== year ||
+    parsedDate.getUTCMonth() + 1 !== month ||
+    parsedDate.getUTCDate() !== day ||
+    year < 1900
+  ) {
+    throw new Error('A data de admissão informada é calendariamente inválida.');
+  }
+
+  const now = new Date();
+  const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  if (parsedDate.getTime() > todayUTC) {
+    throw new Error('A data de admissão não pode ser uma data futura.');
+  }
+
+  return true;
+}
