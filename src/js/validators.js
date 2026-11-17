@@ -39,3 +39,35 @@ export function validateEmail(email) {
 
   return true;
 }
+
+/**
+ * Valida números positivos acima ou iguais ao piso mínimo legal (R$ 1412,00 por padrão).
+ * @param {number|string} salary
+ * @param {number} [minWage=1412]
+ * @returns {boolean}
+ */
+export function validateSalary(salary, minWage = 1412) {
+  if (
+    salary === null ||
+    salary === undefined ||
+    typeof salary === 'boolean' ||
+    (typeof salary === 'string' && salary.trim() === '')
+  ) {
+    throw new Error('O salário é obrigatório e deve ser numérico.');
+  }
+
+  const numericSalary = Number(salary);
+  if (!Number.isFinite(numericSalary)) {
+    throw new Error('O salário deve ser um número válido.');
+  }
+
+  if (numericSalary <= 0) {
+    throw new Error('O salário deve ser um número positivo.');
+  }
+
+  if (numericSalary < minWage) {
+    throw new Error(`O salário não pode ser inferior ao piso mínimo legal (${minWage}).`);
+  }
+
+  return true;
+}
