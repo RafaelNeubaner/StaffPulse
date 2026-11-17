@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { validateName, validateEmail, validateSalary } from '../../src/js/validators.js';
+import {
+  validateName,
+  validateEmail,
+  validateSalary,
+  validateAdmissionDate,
+} from '../../src/js/validators.js';
 
 describe('Módulo de Validações (validators.js)', () => {
   describe('validateName', () => {
@@ -87,6 +92,40 @@ describe('Módulo de Validações (validators.js)', () => {
       expect(() => validateSalary(invalidString)).toThrow('O salário deve ser um número válido.');
       expect(() => validateSalary('')).toThrow('O salário é obrigatório e deve ser numérico.');
       expect(() => validateSalary(null)).toThrow('O salário é obrigatório e deve ser numérico.');
+    });
+  });
+
+  describe('validateAdmissionDate', () => {
+    it('should return true when given a valid past or current admission date in YYYY-MM-DD format', () => {
+      // Given
+      const pastDate = '2023-05-15';
+      // When
+      const result = validateAdmissionDate(pastDate);
+      // Then
+      expect(result).toBe(true);
+    });
+
+    it('should throw an error when given a future admission date', () => {
+      // Given
+      const futureDate = '2099-12-31';
+      // When / Then
+      expect(() => validateAdmissionDate(futureDate)).toThrow(
+        'A data de admissão não pode ser uma data futura.'
+      );
+    });
+
+    it('should throw an error when given an invalid date format or non-existent calendar date', () => {
+      // Given
+      const wrongFormat = '15/05/2023';
+      const impossibleDay = '2023-02-30';
+      // When / Then
+      expect(() => validateAdmissionDate('')).toThrow('A data de admissão é obrigatória.');
+      expect(() => validateAdmissionDate(wrongFormat)).toThrow(
+        'A data de admissão deve estar no formato cronológico YYYY-MM-DD.'
+      );
+      expect(() => validateAdmissionDate(impossibleDay)).toThrow(
+        'A data de admissão informada é calendariamente inválida.'
+      );
     });
   });
 });
