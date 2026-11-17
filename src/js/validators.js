@@ -20,3 +20,22 @@ export function validateName(name) {
 
   return true;
 }
+
+/**
+ * Valida estrutura de e-mail corporativo (regex e domínio válido).
+ * @param {string} email
+ * @returns {boolean}
+ */
+export function validateEmail(email) {
+  if (typeof email !== 'string' || email.trim().length === 0) {
+    throw new Error('O e-mail é obrigatório.');
+  }
+
+  const trimmed = email.trim();
+  const emailRegex = /^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(trimmed)) {
+    throw new Error('Formato de e-mail corporativo inválido.');
+  }
+
+  return true;
+}
