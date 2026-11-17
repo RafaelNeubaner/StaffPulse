@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateName, validateEmail } from '../../src/js/validators.js';
+import { validateName, validateEmail, validateSalary } from '../../src/js/validators.js';
 
 describe('Módulo de Validações (validators.js)', () => {
   describe('validateName', () => {
@@ -56,6 +56,37 @@ describe('Módulo de Validações (validators.js)', () => {
       // When / Then
       expect(() => validateEmail(missingAt)).toThrow('Formato de e-mail corporativo inválido.');
       expect(() => validateEmail(invalidDomain)).toThrow('Formato de e-mail corporativo inválido.');
+    });
+  });
+
+  describe('validateSalary', () => {
+    it('should return true when given a salary equal to or above the minimum legal wage', () => {
+      // Given
+      const exactMinWage = 1412;
+      const higherSalary = 5500.5;
+      // When / Then
+      expect(validateSalary(exactMinWage)).toBe(true);
+      expect(validateSalary(higherSalary)).toBe(true);
+    });
+
+    it('should throw an error when given a negative, zero, or below minimum legal wage salary', () => {
+      // Given
+      const negativeSalary = -500;
+      const zeroSalary = 0;
+      const belowMinWage = 1411.99;
+      // When / Then
+      expect(() => validateSalary(negativeSalary)).toThrow('O salário deve ser um número positivo.');
+      expect(() => validateSalary(zeroSalary)).toThrow('O salário deve ser um número positivo.');
+      expect(() => validateSalary(belowMinWage)).toThrow('O salário não pode ser inferior ao piso mínimo legal');
+    });
+
+    it('should throw an error when given non-numeric, empty, or NaN salary values', () => {
+      // Given
+      const invalidString = 'mil reais';
+      // When / Then
+      expect(() => validateSalary(invalidString)).toThrow('O salário deve ser um número válido.');
+      expect(() => validateSalary('')).toThrow('O salário é obrigatório e deve ser numérico.');
+      expect(() => validateSalary(null)).toThrow('O salário é obrigatório e deve ser numérico.');
     });
   });
 });
