@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateName } from '../../src/js/validators.js';
+import { validateName, validateEmail } from '../../src/js/validators.js';
 
 describe('Módulo de Validações (validators.js)', () => {
   describe('validateName', () => {
@@ -28,6 +28,34 @@ describe('Módulo de Validações (validators.js)', () => {
       // When / Then
       expect(() => validateName(nameWithNumbers)).toThrow('O nome deve conter apenas letras.');
       expect(() => validateName(nameWithSymbols)).toThrow('O nome deve conter apenas letras.');
+    });
+  });
+
+  describe('validateEmail', () => {
+    it('should return true when given a valid corporate email address', () => {
+      // Given
+      const corporateEmail = 'mariana.souza@staffpulse.com.br';
+      // When
+      const result = validateEmail(corporateEmail);
+      // Then
+      expect(result).toBe(true);
+    });
+
+    it('should throw an error when given an empty or non-string email input', () => {
+      // Given
+      const emptyEmail = '';
+      // When / Then
+      expect(() => validateEmail(emptyEmail)).toThrow('O e-mail é obrigatório.');
+      expect(() => validateEmail(null)).toThrow('O e-mail é obrigatório.');
+    });
+
+    it('should throw an error when given a malformed email without @ or valid domain', () => {
+      // Given
+      const missingAt = 'usuario.empresa.com';
+      const invalidDomain = 'usuario@empresa';
+      // When / Then
+      expect(() => validateEmail(missingAt)).toThrow('Formato de e-mail corporativo inválido.');
+      expect(() => validateEmail(invalidDomain)).toThrow('Formato de e-mail corporativo inválido.');
     });
   });
 });
