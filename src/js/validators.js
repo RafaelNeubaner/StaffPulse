@@ -111,3 +111,22 @@ export function validateAdmissionDate(date) {
 
   return true;
 }
+
+/**
+ * Valida contra lista pré-aprovada de setores (TI, RH, Vendas, Financeiro).
+ * @param {string} dept
+ * @returns {boolean}
+ */
+export function validateDepartment(dept) {
+  if (typeof dept !== 'string' || dept.trim().length === 0) {
+    throw new Error('O departamento é obrigatório.');
+  }
+
+  const allowedDepartments = ['TI', 'RH', 'Vendas', 'Financeiro'];
+  const trimmed = dept.trim();
+  if (!allowedDepartments.includes(trimmed)) {
+    throw new Error('Departamento inválido. Os setores permitidos são: TI, RH, Vendas, Financeiro.');
+  }
+
+  return true;
+}
