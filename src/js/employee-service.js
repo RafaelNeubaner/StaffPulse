@@ -99,3 +99,38 @@ export function updateEmployee(id, updates, store = []) {
     store.map((emp, idx) => (idx === index ? updatedEmployee : Object.freeze({ ...emp })))
   );
 }
+
+/**
+ * Executa a remoção lógica ou física do registro.
+ * @param {string} id
+ * @param {Array<object>} [store=[]]
+ * @param {{ logical?: boolean } | boolean} [options={ logical: false }]
+ * @returns {Array<object>}
+ */
+export function deleteEmployee(id, store = [], options = { logical: false }) {
+  if (!id || typeof id !== 'string') {
+    throw new Error('ID do colaborador é obrigatório.');
+  }
+  if (!Array.isArray(store)) {
+    throw new Error('O store deve ser uma lista válida.');
+  }
+
+  const index = store.findIndex((emp) => emp.id === id);
+  if (index === -1) {
+    throw new Error('Colaborador não encontrado.');
+  }
+
+  const isLogical = typeof options === 'boolean' ? options : Boolean(options && options.logical);
+
+  if (isLogical) {
+    return Object.freeze(
+      store.map((emp, idx) =>
+        idx === index ? Object.freeze({ ...emp, status: 'inativo' }) : Object.freeze({ ...emp })
+      )
+    );
+  }
+
+  return Object.freeze(
+    store.filter((emp) => emp.id !== id).map((emp) => Object.freeze({ ...emp }))
+  );
+}
