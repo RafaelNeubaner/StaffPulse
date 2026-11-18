@@ -136,9 +136,33 @@ export function deleteEmployee(id, store = [], options = { logical: false }) {
 }
 
 /**
- * Filtro combinado por departamento e status (ativo/inativo).
+ * Ordena a lista de colaboradores por campo e direção sem mutar a lista original.
  * @param {Array<object>} list
- * @param {{ department?: string, status?: string }} [criteria={}]
+ * @param {'name' | 'salary' | 'admissionDate'} [sortBy='name']
+ * @param {'asc' | 'desc'} [order='asc']
+ * @returns {Array<object>}
+ */
+export function sortEmployees(list = [], sortBy = 'name', order = 'asc') {
+  if (!Array.isArray(list)) {
+    throw new Error('A lista de colaboradores deve ser um array válido.');
+  }
+
+  const direction = String(order).toLowerCase() === 'desc' ? -1 : 1;
+  return [...list].sort((a, b) => {
+    if (sortBy === 'salary') {
+      return (Number(a.salary) - Number(b.salary)) * direction;
+    }
+    if (sortBy === 'admissionDate') {
+      return String(a.admissionDate).localeCompare(String(b.admissionDate)) * direction;
+    }
+    return String(a.name).localeCompare(String(b.name), 'pt-BR') * direction;
+  });
+}
+
+/**
+ * Filtro combinado por departamento e status (ativo/inativo), com suporte opcional a ordenação.
+ * @param {Array<object>} list
+ * @param {{ department?: string, status?: string, sortBy?: string, order?: 'asc' | 'desc' }} [criteria={}]
  * @returns {Array<object>}
  */
 export function filterEmployees(list = [], criteria = {}) {
@@ -146,12 +170,12 @@ export function filterEmployees(list = [], criteria = {}) {
     throw new Error('A lista de colaboradores deve ser um array válido.');
   }
 
-  const { department, status } = criteria || {};
+  const { department, status, sortBy, order } = criteria || {};
   const normalizedDept = department && typeof department === 'string' ? department.trim() : '';
   const normalizedStatus =
     status && typeof status === 'string' ? status.trim().toLowerCase() : '';
 
-  return list.filter((emp) => {
+  const filtered = list.filter((emp) => {
     const matchesDept =
       !normalizedDept ||
       normalizedDept.toLowerCase() === 'todos' ||
@@ -166,6 +190,12 @@ export function filterEmployees(list = [], criteria = {}) {
 
     return matchesDept && matchesStatus;
   });
+
+  if (sortBy) {
+    return sortEmployees(filtered, sortBy, order || 'asc');
+  }
+
+  return filtered;
 }
 
 /**
