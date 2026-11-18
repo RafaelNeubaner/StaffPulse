@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createEmployee } from '../../src/js/employee-service.js';
+import { createEmployee, updateEmployee } from '../../src/js/employee-service.js';
 
 const baseEmployeeData = {
   name: 'Fernanda Oliveira',
@@ -40,6 +40,44 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
       // Given / When / Then
       expect(() => createEmployee(null, [])).toThrow('Dados do colaborador são obrigatórios.');
       expect(() => createEmployee(baseEmployeeData, 'not-an-array')).toThrow(
+        'O store deve ser uma lista válida.'
+      );
+    });
+  });
+
+  describe('updateEmployee', () => {
+    it('should update employee fields and preserve ID without mutating the original store when given valid updates', () => {
+      // Given
+      const store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      // When
+      const updated = updateEmployee('emp-1', { salary: 8200, department: 'Financeiro' }, store);
+      // Then
+      expect(updated[0].salary).toBe(8200);
+      expect(updated[0].department).toBe('Financeiro');
+      expect(updated[0].id).toBe('emp-1');
+      expect(store[0].salary).toBe(6500);
+    });
+
+    it('should throw an error when trying to update a non-existent employee ID', () => {
+      // Given
+      const store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      // When / Then
+      expect(() => updateEmployee('emp-999', { salary: 7000 }, store)).toThrow(
+        'Colaborador não encontrado.'
+      );
+    });
+
+    it('should throw an error when given invalid update parameters or invalid store', () => {
+      // Given
+      const store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      // When / Then
+      expect(() => updateEmployee('', { salary: 7000 }, store)).toThrow(
+        'ID do colaborador é obrigatório.'
+      );
+      expect(() => updateEmployee('emp-1', null, store)).toThrow(
+        'Dados de atualização são obrigatórios.'
+      );
+      expect(() => updateEmployee('emp-1', { salary: 7000 }, null)).toThrow(
         'O store deve ser uma lista válida.'
       );
     });
