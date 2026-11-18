@@ -191,3 +191,51 @@ export function searchByName(list = [], query = '') {
       emp.name.toLowerCase().includes(normalizedQuery)
   );
 }
+
+/**
+ * Retorna soma total da folha, média salarial e contagem por cargo.
+ * @param {Array<object>} list
+ * @returns {{ totalPayroll: number, averageSalary: number, countByRole: Record<string, number>, totalEmployees: number, activeEmployees: number }}
+ */
+export function calculatePayrollStats(list = []) {
+  if (!Array.isArray(list)) {
+    throw new Error('A lista de colaboradores deve ser um array válido.');
+  }
+
+  if (list.length === 0) {
+    return {
+      totalPayroll: 0,
+      averageSalary: 0,
+      countByRole: {},
+      totalEmployees: 0,
+      activeEmployees: 0,
+    };
+  }
+
+  let totalSalary = 0;
+  let activeCount = 0;
+  const countByRole = {};
+
+  for (const emp of list) {
+    const salary = Number(emp.salary) || 0;
+    totalSalary += salary;
+
+    const roleKey = emp.role ? String(emp.role).trim() : 'Analista';
+    countByRole[roleKey] = (countByRole[roleKey] || 0) + 1;
+
+    if (String(emp.status || 'ativo').toLowerCase() === 'ativo') {
+      activeCount += 1;
+    }
+  }
+
+  const totalPayroll = Number(totalSalary.toFixed(2));
+  const averageSalary = Number((totalSalary / list.length).toFixed(2));
+
+  return {
+    totalPayroll,
+    averageSalary,
+    countByRole,
+    totalEmployees: list.length,
+    activeEmployees: activeCount,
+  };
+}
