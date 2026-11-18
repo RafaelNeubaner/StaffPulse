@@ -167,3 +167,27 @@ export function filterEmployees(list = [], criteria = {}) {
     return matchesDept && matchesStatus;
   });
 }
+
+/**
+ * Busca textual insensível a maiúsculas/minúsculas.
+ * @param {Array<object>} list
+ * @param {string} [query='']
+ * @returns {Array<object>}
+ */
+export function searchByName(list = [], query = '') {
+  if (!Array.isArray(list)) {
+    throw new Error('A lista de colaboradores deve ser um array válido.');
+  }
+
+  if (typeof query !== 'string' || query.trim() === '') {
+    return [...list];
+  }
+
+  const normalizedQuery = query.trim().toLowerCase();
+  return list.filter(
+    (emp) =>
+      emp &&
+      typeof emp.name === 'string' &&
+      emp.name.toLowerCase().includes(normalizedQuery)
+  );
+}
