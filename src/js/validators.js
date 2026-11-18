@@ -1,3 +1,10 @@
+export const ALLOWED_DEPARTMENTS = Object.freeze(['TI', 'RH', 'Vendas', 'Financeiro']);
+export const MIN_LEGAL_SALARY = 1412;
+
+const NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+)*$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
+
 /**
  * Garante nome não vazio, mínimo de 3 caracteres e apenas letras e espaços.
  * @param {string} name
@@ -13,8 +20,7 @@ export function validateName(name) {
     throw new Error('O nome deve possuir no mínimo 3 caracteres.');
   }
 
-  const nameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+)*$/;
-  if (!nameRegex.test(trimmed)) {
+  if (!NAME_REGEX.test(trimmed)) {
     throw new Error('O nome deve conter apenas letras.');
   }
 
@@ -32,8 +38,7 @@ export function validateEmail(email) {
   }
 
   const trimmed = email.trim();
-  const emailRegex = /^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(trimmed)) {
+  if (!EMAIL_REGEX.test(trimmed)) {
     throw new Error('Formato de e-mail corporativo inválido.');
   }
 
@@ -43,10 +48,10 @@ export function validateEmail(email) {
 /**
  * Valida números positivos acima ou iguais ao piso mínimo legal (R$ 1412,00 por padrão).
  * @param {number|string} salary
- * @param {number} [minWage=1412]
+ * @param {number} [minWage=MIN_LEGAL_SALARY]
  * @returns {boolean}
  */
-export function validateSalary(salary, minWage = 1412) {
+export function validateSalary(salary, minWage = MIN_LEGAL_SALARY) {
   if (
     salary === null ||
     salary === undefined ||
@@ -83,8 +88,7 @@ export function validateAdmissionDate(date) {
   }
 
   const trimmed = date.trim();
-  const isoRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
-  const match = trimmed.match(isoRegex);
+  const match = trimmed.match(ISO_DATE_REGEX);
   if (!match) {
     throw new Error('A data de admissão deve estar no formato cronológico YYYY-MM-DD.');
   }
@@ -122,10 +126,11 @@ export function validateDepartment(dept) {
     throw new Error('O departamento é obrigatório.');
   }
 
-  const allowedDepartments = ['TI', 'RH', 'Vendas', 'Financeiro'];
   const trimmed = dept.trim();
-  if (!allowedDepartments.includes(trimmed)) {
-    throw new Error('Departamento inválido. Os setores permitidos são: TI, RH, Vendas, Financeiro.');
+  if (!ALLOWED_DEPARTMENTS.includes(trimmed)) {
+    throw new Error(
+      `Departamento inválido. Os setores permitidos são: ${ALLOWED_DEPARTMENTS.join(', ')}.`
+    );
   }
 
   return true;
