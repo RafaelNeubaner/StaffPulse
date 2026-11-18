@@ -134,3 +134,36 @@ export function deleteEmployee(id, store = [], options = { logical: false }) {
     store.filter((emp) => emp.id !== id).map((emp) => Object.freeze({ ...emp }))
   );
 }
+
+/**
+ * Filtro combinado por departamento e status (ativo/inativo).
+ * @param {Array<object>} list
+ * @param {{ department?: string, status?: string }} [criteria={}]
+ * @returns {Array<object>}
+ */
+export function filterEmployees(list = [], criteria = {}) {
+  if (!Array.isArray(list)) {
+    throw new Error('A lista de colaboradores deve ser um array válido.');
+  }
+
+  const { department, status } = criteria || {};
+  const normalizedDept = department && typeof department === 'string' ? department.trim() : '';
+  const normalizedStatus =
+    status && typeof status === 'string' ? status.trim().toLowerCase() : '';
+
+  return list.filter((emp) => {
+    const matchesDept =
+      !normalizedDept ||
+      normalizedDept.toLowerCase() === 'todos' ||
+      normalizedDept.toLowerCase() === 'all' ||
+      emp.department === normalizedDept;
+
+    const matchesStatus =
+      !normalizedStatus ||
+      normalizedStatus === 'todos' ||
+      normalizedStatus === 'all' ||
+      String(emp.status || 'ativo').toLowerCase() === normalizedStatus;
+
+    return matchesDept && matchesStatus;
+  });
+}
