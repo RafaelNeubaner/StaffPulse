@@ -3,6 +3,8 @@ import {
   createEmployee,
   updateEmployee,
   deleteEmployee,
+  filterEmployees,
+  sortEmployees,
 } from '../../src/js/employee-service.js';
 
 const baseEmployeeData = {
@@ -14,6 +16,39 @@ const baseEmployeeData = {
   role: 'Engenheira de Software',
   status: 'ativo',
 };
+
+const sampleEmployees = [
+  {
+    id: 'emp-1',
+    name: 'Carlos Eduardo',
+    email: 'carlos@staffpulse.com',
+    salary: 7000,
+    admissionDate: '2021-01-15',
+    department: 'TI',
+    role: 'Desenvolvedor Senior',
+    status: 'ativo',
+  },
+  {
+    id: 'emp-2',
+    name: 'Amanda Costa',
+    email: 'amanda@staffpulse.com',
+    salary: 4500,
+    admissionDate: '2023-06-20',
+    department: 'RH',
+    role: 'Analista de RH',
+    status: 'ativo',
+  },
+  {
+    id: 'emp-3',
+    name: 'Bruno Santos',
+    email: 'bruno@staffpulse.com',
+    salary: 5200,
+    admissionDate: '2020-11-05',
+    department: 'TI',
+    role: 'Desenvolvedor Pleno',
+    status: 'inativo',
+  },
+];
 
 describe('Serviço de Colaboradores (employee-service.js)', () => {
   describe('createEmployee', () => {
@@ -122,6 +157,47 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
       expect(() => deleteEmployee('', store)).toThrow('ID do colaborador é obrigatório.');
       expect(() => deleteEmployee('emp-1', 'invalid-store')).toThrow(
         'O store deve ser uma lista válida.'
+      );
+    });
+  });
+
+  describe('filterEmployees & sortEmployees', () => {
+    it('should filter employees combining department and active status criteria', () => {
+      // Given / When
+      const tiActive = filterEmployees(sampleEmployees, { department: 'TI', status: 'ativo' });
+      const allActive = filterEmployees(sampleEmployees, { department: 'todos', status: 'ativo' });
+      // Then
+      expect(tiActive).toHaveLength(1);
+      expect(tiActive[0].name).toBe('Carlos Eduardo');
+      expect(allActive).toHaveLength(2);
+    });
+
+    it('should sort filtered employees by salary and admissionDate in ascending and descending order', () => {
+      // Given / When
+      const tiSortedBySalaryAsc = filterEmployees(sampleEmployees, {
+        department: 'TI',
+        sortBy: 'salary',
+        order: 'asc',
+      });
+      const sortedByDateDesc = sortEmployees(sampleEmployees, 'admissionDate', 'desc');
+      const sortedByNameAsc = sortEmployees(sampleEmployees, 'name', 'asc');
+      // Then
+      expect(tiSortedBySalaryAsc.map((e) => e.id)).toEqual(['emp-3', 'emp-1']);
+      expect(sortedByDateDesc.map((e) => e.id)).toEqual(['emp-2', 'emp-1', 'emp-3']);
+      expect(sortedByNameAsc.map((e) => e.name)).toEqual([
+        'Amanda Costa',
+        'Bruno Santos',
+        'Carlos Eduardo',
+      ]);
+    });
+
+    it('should throw an error when filterEmployees or sortEmployees receives a non-array list', () => {
+      // Given / When / Then
+      expect(() => filterEmployees(null, { department: 'TI' })).toThrow(
+        'A lista de colaboradores deve ser um array válido.'
+      );
+      expect(() => sortEmployees('not-an-array', 'name')).toThrow(
+        'A lista de colaboradores deve ser um array válido.'
       );
     });
   });
