@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { createEmployee, updateEmployee } from '../../src/js/employee-service.js';
+import {
+  createEmployee,
+  updateEmployee,
+  deleteEmployee,
+} from '../../src/js/employee-service.js';
 
 const baseEmployeeData = {
   name: 'Fernanda Oliveira',
@@ -78,6 +82,45 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
         'Dados de atualização são obrigatórios.'
       );
       expect(() => updateEmployee('emp-1', { salary: 7000 }, null)).toThrow(
+        'O store deve ser uma lista válida.'
+      );
+    });
+  });
+
+  describe('deleteEmployee', () => {
+    it('should physically remove the employee from the returned list when logical option is false', () => {
+      // Given
+      let store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      store = createEmployee(
+        { ...baseEmployeeData, id: 'emp-2', name: 'Lucas Mendes', email: 'lucas@staffpulse.com' },
+        store
+      );
+      // When
+      const afterDelete = deleteEmployee('emp-1', store);
+      // Then
+      expect(afterDelete).toHaveLength(1);
+      expect(afterDelete[0].id).toBe('emp-2');
+      expect(store).toHaveLength(2);
+    });
+
+    it('should logically deactivate the employee by setting status to inativo when logical option is enabled', () => {
+      // Given
+      const store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      // When
+      const afterLogicalDelete = deleteEmployee('emp-1', store, { logical: true });
+      // Then
+      expect(afterLogicalDelete).toHaveLength(1);
+      expect(afterLogicalDelete[0].status).toBe('inativo');
+      expect(store[0].status).toBe('ativo');
+    });
+
+    it('should throw an error when attempting to delete an employee with an unknown or empty ID', () => {
+      // Given
+      const store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      // When / Then
+      expect(() => deleteEmployee('emp-404', store)).toThrow('Colaborador não encontrado.');
+      expect(() => deleteEmployee('', store)).toThrow('ID do colaborador é obrigatório.');
+      expect(() => deleteEmployee('emp-1', 'invalid-store')).toThrow(
         'O store deve ser uma lista válida.'
       );
     });
