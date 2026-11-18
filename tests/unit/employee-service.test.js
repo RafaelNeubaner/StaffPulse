@@ -5,6 +5,8 @@ import {
   deleteEmployee,
   filterEmployees,
   sortEmployees,
+  searchByName,
+  calculatePayrollStats,
 } from '../../src/js/employee-service.js';
 
 const baseEmployeeData = {
@@ -197,6 +199,52 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
         'A lista de colaboradores deve ser um array válido.'
       );
       expect(() => sortEmployees('not-an-array', 'name')).toThrow(
+        'A lista de colaboradores deve ser um array válido.'
+      );
+    });
+  });
+
+  describe('searchByName & calculatePayrollStats', () => {
+    it('should perform case-insensitive name search and return full list copy when query is blank', () => {
+      // Given / When
+      const found = searchByName(sampleEmployees, '  cArLoS  ');
+      const allWhenEmpty = searchByName(sampleEmployees, '   ');
+      // Then
+      expect(found).toHaveLength(1);
+      expect(found[0].id).toBe('emp-1');
+      expect(allWhenEmpty).toHaveLength(3);
+      expect(() => searchByName(null, 'carlos')).toThrow(
+        'A lista de colaboradores deve ser um array válido.'
+      );
+    });
+
+    it('should calculate total payroll, average salary, active count, and count by role accurately', () => {
+      // Given / When
+      const stats = calculatePayrollStats(sampleEmployees);
+      // Then
+      expect(stats.totalPayroll).toBe(16700);
+      expect(stats.averageSalary).toBe(5566.67);
+      expect(stats.totalEmployees).toBe(3);
+      expect(stats.activeEmployees).toBe(2);
+      expect(stats.countByRole).toEqual({
+        'Desenvolvedor Senior': 1,
+        'Analista de RH': 1,
+        'Desenvolvedor Pleno': 1,
+      });
+    });
+
+    it('should return zeroed payroll statistics when list is empty and throw error when list is invalid', () => {
+      // Given / When
+      const emptyStats = calculatePayrollStats([]);
+      // Then
+      expect(emptyStats).toEqual({
+        totalPayroll: 0,
+        averageSalary: 0,
+        countByRole: {},
+        totalEmployees: 0,
+        activeEmployees: 0,
+      });
+      expect(() => calculatePayrollStats('invalid')).toThrow(
         'A lista de colaboradores deve ser um array válido.'
       );
     });
