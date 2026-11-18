@@ -8,6 +8,25 @@ import {
 
 let idSequence = 1;
 
+function normalizeEmployeeRecord(data, id) {
+  validateName(data.name);
+  validateEmail(data.email);
+  validateSalary(data.salary);
+  validateAdmissionDate(data.admissionDate);
+  validateDepartment(data.department);
+
+  return Object.freeze({
+    id,
+    name: data.name.trim(),
+    email: data.email.trim(),
+    salary: Number(data.salary),
+    admissionDate: data.admissionDate.trim(),
+    department: data.department.trim(),
+    role: data.role ? String(data.role).trim() : 'Analista',
+    status: data.status ? String(data.status).trim().toLowerCase() : 'ativo',
+  });
+}
+
 /**
  * Adiciona registro garantindo ID único e imutabilidade.
  * @param {object} data
@@ -22,29 +41,12 @@ export function createEmployee(data, store = []) {
     throw new Error('O store deve ser uma lista válida.');
   }
 
-  validateName(data.name);
-  validateEmail(data.email);
-  validateSalary(data.salary);
-  validateAdmissionDate(data.admissionDate);
-  validateDepartment(data.department);
-
   const generatedId = data.id ? String(data.id).trim() : `emp-${Date.now()}-${idSequence++}`;
-  const idExists = store.some((emp) => emp.id === generatedId);
-  if (idExists) {
+  if (store.some((emp) => emp.id === generatedId)) {
     throw new Error('Já existe um colaborador com este ID.');
   }
 
-  const newEmployee = Object.freeze({
-    id: generatedId,
-    name: data.name.trim(),
-    email: data.email.trim(),
-    salary: Number(data.salary),
-    admissionDate: data.admissionDate.trim(),
-    department: data.department.trim(),
-    role: data.role ? String(data.role).trim() : 'Analista',
-    status: data.status ? String(data.status).trim().toLowerCase() : 'ativo',
-  });
-
+  const newEmployee = normalizeEmployeeRecord(data, generatedId);
   return Object.freeze([...store.map((item) => Object.freeze({ ...item })), newEmployee]);
 }
 
@@ -72,28 +74,7 @@ export function updateEmployee(id, updates, store = []) {
   }
 
   const current = store[index];
-  const merged = {
-    ...current,
-    ...updates,
-    id: current.id,
-  };
-
-  validateName(merged.name);
-  validateEmail(merged.email);
-  validateSalary(merged.salary);
-  validateAdmissionDate(merged.admissionDate);
-  validateDepartment(merged.department);
-
-  const updatedEmployee = Object.freeze({
-    id: current.id,
-    name: merged.name.trim(),
-    email: merged.email.trim(),
-    salary: Number(merged.salary),
-    admissionDate: merged.admissionDate.trim(),
-    department: merged.department.trim(),
-    role: merged.role ? String(merged.role).trim() : current.role,
-    status: merged.status ? String(merged.status).trim().toLowerCase() : current.status,
-  });
+  const updatedEmployee = normalizeEmployeeRecord({ ...current, ...updates }, current.id);
 
   return Object.freeze(
     store.map((emp, idx) => (idx === index ? updatedEmployee : Object.freeze({ ...emp })))
@@ -170,10 +151,9 @@ export function filterEmployees(list = [], criteria = {}) {
     throw new Error('A lista de colaboradores deve ser um array válido.');
   }
 
-  const { department, status, sortBy, order } = criteria || {};
-  const normalizedDept = department && typeof department === 'string' ? department.trim() : '';
-  const normalizedStatus =
-    status && typeof status === 'string' ? status.trim().toLowerCase() : '';
+  const { department, status, sortBy, order = 'asc' } = criteria || {};
+  const normalizedDept = department ? String(department).trim() : '';
+  const normalizedStatus = status ? String(status).trim().toLowerCase() : '';
 
   const filtered = list.filter((emp) => {
     const matchesDept =
@@ -192,7 +172,7 @@ export function filterEmployees(list = [], criteria = {}) {
   });
 
   if (sortBy) {
-    return sortEmployees(filtered, sortBy, order || 'asc');
+    return sortEmployees(filtered, sortBy, order);
   }
 
   return filtered;
@@ -214,12 +194,7 @@ export function searchByName(list = [], query = '') {
   }
 
   const normalizedQuery = query.trim().toLowerCase();
-  return list.filter(
-    (emp) =>
-      emp &&
-      typeof emp.name === 'string' &&
-      emp.name.toLowerCase().includes(normalizedQuery)
-  );
+  return list.filter((emp) => String(emp.name).toLowerCase().includes(normalizedQuery));
 }
 
 /**
@@ -247,8 +222,7 @@ export function calculatePayrollStats(list = []) {
   const countByRole = {};
 
   for (const emp of list) {
-    const salary = Number(emp.salary) || 0;
-    totalSalary += salary;
+    totalSalary += Number(emp.salary);
 
     const roleKey = emp.role ? String(emp.role).trim() : 'Analista';
     countByRole[roleKey] = (countByRole[roleKey] || 0) + 1;
