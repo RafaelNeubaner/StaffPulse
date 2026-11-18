@@ -56,14 +56,20 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
   describe('createEmployee', () => {
     it('should create a new employee with a unique ID and return an immutable list when given valid data', () => {
       // Given
-      const initialStore = [];
+      const minimalData = {
+        name: 'Fernanda Oliveira',
+        email: 'fernanda.oliveira@staffpulse.com',
+        salary: 6500,
+        admissionDate: '2022-03-10',
+        department: 'TI',
+      };
       // When
-      const updatedStore = createEmployee(baseEmployeeData, initialStore);
+      const updatedStore = createEmployee(minimalData);
       // Then
       expect(updatedStore).toHaveLength(1);
-      expect(initialStore).toHaveLength(0);
       expect(updatedStore[0].id).toBeDefined();
-      expect(updatedStore[0].name).toBe('Fernanda Oliveira');
+      expect(updatedStore[0].role).toBe('Analista');
+      expect(updatedStore[0].status).toBe('ativo');
       expect(Object.isFrozen(updatedStore)).toBe(true);
       expect(Object.isFrozen(updatedStore[0])).toBe(true);
     });
@@ -89,13 +95,18 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
   describe('updateEmployee', () => {
     it('should update employee fields and preserve ID without mutating the original store when given valid updates', () => {
       // Given
-      const store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      let store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      store = createEmployee(
+        { ...baseEmployeeData, id: 'emp-2', name: 'Lucas Mendes', email: 'lucas@staffpulse.com' },
+        store
+      );
       // When
       const updated = updateEmployee('emp-1', { salary: 8200, department: 'Financeiro' }, store);
       // Then
       expect(updated[0].salary).toBe(8200);
       expect(updated[0].department).toBe('Financeiro');
       expect(updated[0].id).toBe('emp-1');
+      expect(updated[1].id).toBe('emp-2');
       expect(store[0].salary).toBe(6500);
     });
 
@@ -142,12 +153,18 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
 
     it('should logically deactivate the employee by setting status to inativo when logical option is enabled', () => {
       // Given
-      const store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      let store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      store = createEmployee(
+        { ...baseEmployeeData, id: 'emp-2', name: 'Lucas Mendes', email: 'lucas@staffpulse.com' },
+        store
+      );
       // When
-      const afterLogicalDelete = deleteEmployee('emp-1', store, { logical: true });
+      const afterLogicalObj = deleteEmployee('emp-1', store, { logical: true });
+      const afterLogicalBool = deleteEmployee('emp-1', store, true);
       // Then
-      expect(afterLogicalDelete).toHaveLength(1);
-      expect(afterLogicalDelete[0].status).toBe('inativo');
+      expect(afterLogicalObj[0].status).toBe('inativo');
+      expect(afterLogicalObj[1].status).toBe('ativo');
+      expect(afterLogicalBool[0].status).toBe('inativo');
       expect(store[0].status).toBe('ativo');
     });
 
@@ -167,11 +184,13 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
     it('should filter employees combining department and active status criteria', () => {
       // Given / When
       const tiActive = filterEmployees(sampleEmployees, { department: 'TI', status: 'ativo' });
-      const allActive = filterEmployees(sampleEmployees, { department: 'todos', status: 'ativo' });
+      const allActive = filterEmployees(sampleEmployees, { department: 'all', status: 'ativo' });
+      const allDefault = filterEmployees(sampleEmployees, null);
       // Then
       expect(tiActive).toHaveLength(1);
       expect(tiActive[0].name).toBe('Carlos Eduardo');
       expect(allActive).toHaveLength(2);
+      expect(allDefault).toHaveLength(3);
     });
 
     it('should sort filtered employees by salary and admissionDate in ascending and descending order', () => {
@@ -182,7 +201,7 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
         order: 'asc',
       });
       const sortedByDateDesc = sortEmployees(sampleEmployees, 'admissionDate', 'desc');
-      const sortedByNameAsc = sortEmployees(sampleEmployees, 'name', 'asc');
+      const sortedByNameAsc = sortEmployees(sampleEmployees);
       // Then
       expect(tiSortedBySalaryAsc.map((e) => e.id)).toEqual(['emp-3', 'emp-1']);
       expect(sortedByDateDesc.map((e) => e.id)).toEqual(['emp-2', 'emp-1', 'emp-3']);
@@ -208,7 +227,7 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
     it('should perform case-insensitive name search and return full list copy when query is blank', () => {
       // Given / When
       const found = searchByName(sampleEmployees, '  cArLoS  ');
-      const allWhenEmpty = searchByName(sampleEmployees, '   ');
+      const allWhenEmpty = searchByName(sampleEmployees);
       // Then
       expect(found).toHaveLength(1);
       expect(found[0].id).toBe('emp-1');
@@ -220,22 +239,26 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
 
     it('should calculate total payroll, average salary, active count, and count by role accurately', () => {
       // Given / When
-      const stats = calculatePayrollStats(sampleEmployees);
+      const stats = calculatePayrollStats([
+        ...sampleEmployees,
+        { id: 'emp-4', name: 'Diana', salary: 3300, department: 'TI' },
+      ]);
       // Then
-      expect(stats.totalPayroll).toBe(16700);
-      expect(stats.averageSalary).toBe(5566.67);
-      expect(stats.totalEmployees).toBe(3);
-      expect(stats.activeEmployees).toBe(2);
+      expect(stats.totalPayroll).toBe(20000);
+      expect(stats.averageSalary).toBe(5000);
+      expect(stats.totalEmployees).toBe(4);
+      expect(stats.activeEmployees).toBe(3);
       expect(stats.countByRole).toEqual({
         'Desenvolvedor Senior': 1,
         'Analista de RH': 1,
         'Desenvolvedor Pleno': 1,
+        Analista: 1,
       });
     });
 
     it('should return zeroed payroll statistics when list is empty and throw error when list is invalid', () => {
       // Given / When
-      const emptyStats = calculatePayrollStats([]);
+      const emptyStats = calculatePayrollStats();
       // Then
       expect(emptyStats).toEqual({
         totalPayroll: 0,
