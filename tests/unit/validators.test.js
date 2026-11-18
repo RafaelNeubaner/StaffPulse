@@ -4,6 +4,7 @@ import {
   validateEmail,
   validateSalary,
   validateAdmissionDate,
+  validateDepartment,
 } from '../../src/js/validators.js';
 
 describe('Módulo de Validações (validators.js)', () => {
@@ -126,6 +127,34 @@ describe('Módulo de Validações (validators.js)', () => {
       expect(() => validateAdmissionDate(impossibleDay)).toThrow(
         'A data de admissão informada é calendariamente inválida.'
       );
+    });
+  });
+
+  describe('validateDepartment', () => {
+    it('should return true when given any of the pre-approved departments (TI, RH, Vendas, Financeiro)', () => {
+      // Given
+      const approved = ['TI', 'RH', 'Vendas', 'Financeiro'];
+      // When / Then
+      for (const sector of approved) {
+        expect(validateDepartment(sector)).toBe(true);
+      }
+    });
+
+    it('should throw an error when given an unapproved or unknown department', () => {
+      // Given
+      const unapprovedDept = 'Marketing';
+      // When / Then
+      expect(() => validateDepartment(unapprovedDept)).toThrow(
+        'Departamento inválido. Os setores permitidos são: TI, RH, Vendas, Financeiro.'
+      );
+    });
+
+    it('should throw an error when given an empty or non-string department value', () => {
+      // Given
+      const emptyDept = '   ';
+      // When / Then
+      expect(() => validateDepartment(emptyDept)).toThrow('O departamento é obrigatório.');
+      expect(() => validateDepartment(undefined)).toThrow('O departamento é obrigatório.');
     });
   });
 });
