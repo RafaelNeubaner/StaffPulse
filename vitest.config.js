@@ -12,6 +12,7 @@ export default defineConfig({
         'src/js/employee-repository.js',
         'src/js/dashboard.js',
         'src/js/employee-form.js',
+        'src/js/employee-list.js',
       ],
       reporter: ['text', 'html', 'lcov'],
       thresholds: {

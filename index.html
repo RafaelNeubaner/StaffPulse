@@ -125,7 +125,7 @@
                 <p>Preencha os dados para adicionar uma pessoa à equipe.</p>
               </header>
 
-              <form id="employee-form" class="employee-form">
+              <form id="employee-form" class="employee-form" novalidate>
                 <div class="form-field">
                   <label for="employee-name">Nome</label>
                   <input
@@ -133,8 +133,11 @@
                     name="name"
                     type="text"
                     autocomplete="name"
+                    aria-describedby="employee-name-error"
+                    aria-invalid="false"
                     required
                   />
+                  <p id="employee-name-error" class="field-error" hidden></p>
                 </div>
 
                 <div class="form-field">
@@ -144,8 +147,11 @@
                     name="email"
                     type="email"
                     autocomplete="email"
+                    aria-describedby="employee-email-error"
+                    aria-invalid="false"
                     required
                   />
+                  <p id="employee-email-error" class="field-error" hidden></p>
                 </div>
 
                 <div class="form-field">
@@ -156,8 +162,11 @@
                     type="number"
                     inputmode="decimal"
                     step="0.01"
+                    aria-describedby="employee-salary-error"
+                    aria-invalid="false"
                     required
                   />
+                  <p id="employee-salary-error" class="field-error" hidden></p>
                 </div>
 
                 <div class="form-field">
@@ -166,13 +175,23 @@
                     id="employee-admission-date"
                     name="admissionDate"
                     type="date"
+                    aria-describedby="employee-admissionDate-error"
+                    aria-invalid="false"
                     required
                   />
+                  <p id="employee-admissionDate-error" class="field-error" hidden></p>
                 </div>
 
                 <div class="form-field form-field--wide">
                   <label for="employee-department">Departamento</label>
-                  <select id="employee-department" name="department" required></select>
+                  <select
+                    id="employee-department"
+                    name="department"
+                    aria-describedby="employee-department-error"
+                    aria-invalid="false"
+                    required
+                  ></select>
+                  <p id="employee-department-error" class="field-error" hidden></p>
                 </div>
 
                 <div
@@ -189,6 +208,19 @@
                   <button class="button-secondary" type="reset">Limpar formulário</button>
                 </div>
               </form>
+            </section>
+
+            <section class="employee-list-card" aria-labelledby="employee-list-title">
+              <header class="employee-list-card__header">
+                <p class="section-kicker">Equipe</p>
+                <h3 id="employee-list-title">Colaboradores cadastrados</h3>
+              </header>
+              <div
+                id="employee-list-content"
+                class="employee-list-content"
+                aria-live="polite"
+                aria-relevant="additions removals text"
+              ></div>
             </section>
           </section>
         </main>
