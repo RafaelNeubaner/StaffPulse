@@ -1,4 +1,4 @@
-import { addEmployee } from './employee-store.js';
+import { addEmployee, editEmployee, getEmployees } from './employee-store.js';
 import {
   ALLOWED_DEPARTMENTS,
   ValidationError,
@@ -17,13 +17,17 @@ const fieldValidators = [
   { name: 'department', validate: validateDepartment },
 ];
 
+let activeFormController = null;
+
 export function initializeEmployeeForm() {
   const form = document.querySelector('#employee-form');
   const departmentSelect = document.querySelector('#employee-department');
   const feedback = document.querySelector('#employee-form-feedback');
   const submitButton = form?.querySelector('button[type="submit"]');
+  const cancelEditButton = form?.querySelector('#employee-edit-cancel');
+  const title = document.querySelector('#employee-form-title');
 
-  if (!form || !departmentSelect || !feedback || !submitButton) {
+  if (!form || !departmentSelect || !feedback || !submitButton || !cancelEditButton || !title) {
     throw new Error('A estrutura do formulário de colaboradores está incompleta.');
   }
 
@@ -38,6 +42,33 @@ export function initializeEmployeeForm() {
 
     return { ...rule, input, error };
   });
+
+  let editingEmployee = null;
+
+  const cancelEditing = () => {
+    editingEmployee = null;
+    form.reset();
+    title.textContent = 'Novo colaborador';
+    submitButton.textContent = 'Cadastrar colaborador';
+    cancelEditButton.hidden = true;
+  };
+
+  activeFormController = {
+    startEditing(employee) {
+      form.reset();
+      editingEmployee = employee;
+      for (const { name, input } of fields) {
+        input.value = employee[name];
+      }
+      title.textContent = 'Editar colaborador';
+      submitButton.textContent = 'Salvar alterações';
+      cancelEditButton.hidden = false;
+      clearFeedback(feedback);
+      fields[0].input.focus();
+    },
+  };
+
+  cancelEditButton.addEventListener('click', cancelEditing);
 
   let isSubmitting = false;
 
@@ -59,9 +90,20 @@ export function initializeEmployeeForm() {
 
     try {
       const employeeData = Object.fromEntries(new FormData(form).entries());
-      addEmployee(employeeData);
-      form.reset();
-      showFeedback(feedback, 'Colaborador cadastrado com sucesso.', 'success');
+      if (editingEmployee) {
+        const updates = Object.fromEntries(
+          Object.entries(employeeData).filter(
+            ([field, value]) => value !== String(editingEmployee[field])
+          )
+        );
+        editEmployee(editingEmployee.id, updates);
+        cancelEditing();
+        showFeedback(feedback, 'Colaborador atualizado com sucesso.', 'success');
+      } else {
+        addEmployee(employeeData);
+        form.reset();
+        showFeedback(feedback, 'Colaborador cadastrado com sucesso.', 'success');
+      }
     } catch (error) {
       if (!(error instanceof Error)) {
         throw error;
@@ -99,6 +141,18 @@ export function initializeEmployeeForm() {
     }
     clearFeedback(feedback);
   });
+}
+
+export function startEmployeeEdit(employeeId) {
+  const employee = getEmployees().find(({ id }) => id === employeeId);
+  if (!employee) {
+    throw new Error('Colaborador não encontrado.');
+  }
+  if (!activeFormController) {
+    throw new Error('O formulário de colaboradores não está inicializado.');
+  }
+
+  activeFormController.startEditing(employee);
 }
 
 function validateFields(fields) {

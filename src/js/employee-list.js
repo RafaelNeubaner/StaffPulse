@@ -1,10 +1,12 @@
 import { getEmployees, subscribeToEmployeeChanges } from './employee-store.js';
+import { startEmployeeEdit } from './employee-form.js';
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
   currency: 'BRL',
 });
 
+const dateFormatter = new Intl.DateTimeFormat('pt-BR');
 const renderedLists = new WeakMap();
 
 export function initializeEmployeeList() {
@@ -23,12 +25,13 @@ export function initializeEmployeeList() {
 
 export function renderEmployeeList(container, employees) {
   const signature = JSON.stringify(
-    employees.map(({ id, name, email, department, salary, status }) => ({
+    employees.map(({ id, name, email, department, salary, admissionDate, status }) => ({
       id,
       name,
       email,
       department,
       salary,
+      admissionDate,
       status,
     }))
   );
@@ -45,43 +48,80 @@ export function renderEmployeeList(container, employees) {
     return;
   }
 
-  const list = document.createElement('ul');
-  list.className = 'employee-list';
-  list.setAttribute('aria-label', 'Colaboradores cadastrados');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'employee-table-wrapper';
+  wrapper.setAttribute('role', 'region');
+  wrapper.setAttribute('aria-label', 'Tabela de colaboradores cadastrados');
+  wrapper.setAttribute('tabindex', '0');
 
+  const table = document.createElement('table');
+  table.className = 'employee-table';
+
+  const caption = document.createElement('caption');
+  caption.className = 'visually-hidden';
+  caption.textContent = 'Dados dos colaboradores cadastrados';
+
+  const header = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  for (const label of [
+    'Nome',
+    'E-mail',
+    'Departamento',
+    'Salário',
+    'Data de admissão',
+    'Status',
+    'Ações',
+  ]) {
+    const cell = document.createElement('th');
+    cell.scope = 'col';
+    cell.textContent = label;
+    headerRow.append(cell);
+  }
+  header.append(headerRow);
+
+  const body = document.createElement('tbody');
   for (const employee of employees) {
-    const item = document.createElement('li');
-    item.className = 'employee-list-item';
+    const row = document.createElement('tr');
+    appendTextCell(row, employee.name, 'employee-table__name');
+    appendTextCell(row, employee.email);
+    appendTextCell(row, employee.department);
+    appendTextCell(row, currencyFormatter.format(employee.salary), 'employee-table__salary');
 
-    const name = document.createElement('h4');
-    name.className = 'employee-list-item__name';
-    name.textContent = employee.name;
+    const admissionDate = new Date(`${employee.admissionDate}T00:00:00`);
+    appendTextCell(row, dateFormatter.format(admissionDate));
 
-    const details = document.createElement('p');
-    details.className = 'employee-list-item__details';
-    details.textContent = `${employee.email} · ${employee.department}`;
-
-    const salary = document.createElement('span');
-    salary.className = 'employee-list-item__salary';
-    salary.textContent = currencyFormatter.format(employee.salary);
-
+    const statusCell = document.createElement('td');
     const status = document.createElement('span');
-    status.className = 'employee-list-item__status';
+    status.className = 'employee-table__status';
     status.dataset.status = employee.status;
     status.textContent = employee.status;
+    statusCell.append(status);
+    row.append(statusCell);
 
-    const information = document.createElement('div');
-    information.className = 'employee-list-item__information';
-    information.append(name, details);
+    const actionCell = document.createElement('td');
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.className = 'button-secondary employee-table__action';
+    editButton.textContent = 'Editar';
+    editButton.setAttribute('aria-label', `Editar ${employee.name}`);
+    editButton.addEventListener('click', () => startEmployeeEdit(employee.id));
+    actionCell.append(editButton);
+    row.append(actionCell);
 
-    const summary = document.createElement('div');
-    summary.className = 'employee-list-item__summary';
-    summary.append(salary, status);
-
-    item.append(information, summary);
-    list.append(item);
+    body.append(row);
   }
 
-  container.replaceChildren(list);
+  table.append(caption, header, body);
+  wrapper.append(table);
+  container.replaceChildren(wrapper);
   renderedLists.set(container, signature);
+}
+
+function appendTextCell(row, text, className = '') {
+  const cell = document.createElement('td');
+  if (className) {
+    cell.className = className;
+  }
+  cell.textContent = text;
+  row.append(cell);
 }

@@ -11,7 +11,12 @@ class ElementStub {
     this.attributes = {};
     this.children = [];
     this.dataset = {};
+    this.listeners = new Map();
     this.textContent = '';
+  }
+
+  addEventListener(eventName, listener) {
+    this.listeners.set(eventName, listener);
   }
 
   append(...children) {
@@ -25,10 +30,21 @@ class ElementStub {
   setAttribute(name, value) {
     this.attributes[name] = value;
   }
+
+  getAttribute(name) {
+    return this.attributes[name] ?? null;
+  }
 }
 
 function getRenderedText(element) {
   return [element.textContent, ...element.children.map(getRenderedText)].join(' ');
+}
+
+function findElements(element, tagName) {
+  return [
+    ...(element.tagName === tagName ? [element] : []),
+    ...element.children.flatMap((child) => findElements(child, tagName)),
+  ];
 }
 
 afterEach(() => {
@@ -39,7 +55,7 @@ describe('Employee list', () => {
   it('should show the empty state when no employees are registered', () => {
     const container = new ElementStub();
     vi.stubGlobal('document', {
-      createElement: () => new ElementStub(),
+      createElement: (tagName) => Object.assign(new ElementStub(), { tagName }),
       querySelector: (selector) =>
         selector === '#employee-list-content' ? container : null,
     });
@@ -53,7 +69,7 @@ describe('Employee list', () => {
   it('should render existing employees and update immediately after store changes', () => {
     const container = new ElementStub();
     vi.stubGlobal('document', {
-      createElement: () => new ElementStub(),
+      createElement: (tagName) => Object.assign(new ElementStub(), { tagName }),
       querySelector: (selector) =>
         selector === '#employee-list-content' ? container : null,
     });
@@ -88,6 +104,25 @@ describe('Employee list', () => {
       expect(getRenderedText(container)).toContain('Joana Silva');
       expect(getRenderedText(container)).toContain(email);
       expect(getRenderedText(container)).toContain('6.500,00');
+      expect(getRenderedText(container)).toContain('15/06/2021');
+      expect(getRenderedText(container)).toContain('10/03/2022');
+      expect(getRenderedText(container)).toContain('Editar');
+
+      const headings = findElements(container, 'th').map(({ textContent }) => textContent);
+      expect(headings).toEqual([
+        'Nome',
+        'E-mail',
+        'Departamento',
+        'Salário',
+        'Data de admissão',
+        'Status',
+        'Ações',
+      ]);
+      const editButton = findElements(container, 'button').find(
+        ({ textContent }) => textContent === 'Editar'
+      );
+      expect(editButton.type).toBe('button');
+      expect(editButton.getAttribute('aria-label')).toBe('Editar Colaborador existente');
 
       removeEmployee(employeeId);
       expect(getRenderedText(container)).not.toContain('Joana Silva');

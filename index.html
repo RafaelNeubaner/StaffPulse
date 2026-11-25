@@ -205,6 +205,14 @@
 
                 <div class="form-actions">
                   <button class="button-primary" type="submit">Cadastrar colaborador</button>
+                  <button
+                    id="employee-edit-cancel"
+                    class="button-secondary"
+                    type="button"
+                    hidden
+                  >
+                    Cancelar edição
+                  </button>
                   <button class="button-secondary" type="reset">Limpar formulário</button>
                 </div>
               </form>
@@ -215,12 +223,7 @@
                 <p class="section-kicker">Equipe</p>
                 <h3 id="employee-list-title">Colaboradores cadastrados</h3>
               </header>
-              <div
-                id="employee-list-content"
-                class="employee-list-content"
-                aria-live="polite"
-                aria-relevant="additions removals text"
-              ></div>
+              <div id="employee-list-content" class="employee-list-content" aria-live="polite"></div>
             </section>
           </section>
         </main>

@@ -675,6 +675,123 @@ a:focus-visible {
   outline-offset: 3px;
 }
 
+.button-primary:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
+.employee-list-card {
+  margin-top: var(--space-6);
+  padding: var(--space-6);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.employee-list-card__header {
+  margin-bottom: var(--space-4);
+}
+
+.employee-list-card__header h3 {
+  margin: 0;
+  color: var(--color-navy-950);
+  font-size: 1.15rem;
+  letter-spacing: -0.025em;
+}
+
+.employee-list-content {
+  min-width: 0;
+}
+
+.employee-list-empty {
+  margin: 0;
+  color: var(--color-gray-700);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.employee-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+}
+
+.employee-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.employee-table th,
+.employee-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-gray-200);
+  font-size: 0.82rem;
+}
+
+.employee-table th {
+  color: var(--color-gray-700);
+  background: var(--color-gray-100);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.employee-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.employee-table tbody tr:hover {
+  background: var(--color-gray-100);
+}
+
+.employee-table__name {
+  color: var(--color-navy-950);
+  font-weight: 700;
+}
+
+.employee-table__salary {
+  color: var(--color-navy-900);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+.employee-table__status {
+  display: inline-flex;
+  padding: 0.28rem 0.58rem;
+  border-radius: 999px;
+  color: var(--color-teal-600);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  background: var(--color-teal-100);
+}
+
+.employee-table__status[data-status="inativo"] {
+  color: var(--color-gray-700);
+  background: var(--color-gray-100);
+}
+
+.employee-table__action {
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  font-size: 0.76rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
 @media (max-width: 760px) {
   .app-shell {
     display: block;
@@ -755,107 +872,6 @@ a:focus-visible {
 
   .employee-list-card {
     padding: var(--space-4);
-  }
-
-  .employee-list-item {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .employee-list-item__summary {
-    justify-items: start;
-    text-align: left;
-  }
-
-  .button-primary:disabled {
-    cursor: wait;
-    opacity: 0.72;
-    transform: none;
-  }
-
-  .employee-list-card {
-    margin-top: var(--space-6);
-    padding: var(--space-6);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-lg);
-    background: var(--color-white);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .employee-list-card__header {
-    margin-bottom: var(--space-4);
-  }
-
-  .employee-list-card__header h3 {
-    margin: 0;
-    color: var(--color-navy-950);
-    font-size: 1.15rem;
-    letter-spacing: -0.025em;
-  }
-
-  .employee-list-content {
-    min-width: 0;
-  }
-
-  .employee-list,
-  .employee-list-item__summary {
-    display: grid;
-  }
-
-  .employee-list {
-    gap: var(--space-3);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .employee-list-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-4);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-md);
-  }
-
-  .employee-list-item__name {
-    margin: 0;
-    color: var(--color-navy-950);
-    font-size: 0.92rem;
-  }
-
-  .employee-list-item__details,
-  .employee-list-empty {
-    margin: var(--space-1) 0 0;
-    color: var(--color-gray-700);
-    font-size: 0.82rem;
-    line-height: 1.5;
-  }
-
-  .employee-list-item__summary {
-    justify-items: end;
-    gap: var(--space-1);
-    flex: 0 0 auto;
-    color: var(--color-navy-900);
-    font-size: 0.82rem;
-    font-weight: 700;
-    text-align: right;
-  }
-
-  .employee-list-item__status {
-    color: var(--color-teal-600);
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: capitalize;
-  }
-
-  .employee-list-item__status[data-status="inativo"] {
-    color: var(--color-gray-700);
-  }
-
-  .employee-list-empty {
-    margin: 0;
   }
 }
 

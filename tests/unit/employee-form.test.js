@@ -1,12 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  addEmployee,
+  editEmployee,
   getEmployees,
   removeEmployee,
   subscribeToEmployeeChanges,
 } from '../../src/js/employee-store.js';
 import * as employeeStore from '../../src/js/employee-store.js';
 import { ALLOWED_DEPARTMENTS } from '../../src/js/validators.js';
-import { initializeEmployeeForm } from '../../src/js/employee-form.js';
+import {
+  initializeEmployeeForm,
+  startEmployeeEdit,
+} from '../../src/js/employee-form.js';
 
 class ElementStub {
   constructor() {
@@ -49,14 +54,23 @@ class FormDataStub {
   }
 
   entries() {
-    return Object.entries(this.form.values);
+    return Object.entries(
+      Object.fromEntries(
+        Object.entries(this.form.fields).map(([name, field]) => [name, field.value])
+      )
+    );
   }
 }
 
 function setupForm() {
   const form = new ElementStub();
   const submitButton = new ElementStub();
+  submitButton.textContent = 'Cadastrar colaborador';
   submitButton.disabled = false;
+  const cancelEditButton = new ElementStub();
+  cancelEditButton.hidden = true;
+  const title = new ElementStub();
+  title.textContent = 'Novo colaborador';
   const fieldNames = ['name', 'email', 'salary', 'admissionDate', 'department'];
   const fields = Object.fromEntries(
     fieldNames.map((name) => {
@@ -66,6 +80,7 @@ function setupForm() {
       return [name, field];
     })
   );
+  form.fields = fields;
   const errors = Object.fromEntries(
     fieldNames.map((name) => [name, new ElementStub()])
   );
@@ -75,8 +90,11 @@ function setupForm() {
       return fields[name] ?? null;
     },
   };
-  form.querySelector = (selector) =>
-    selector === 'button[type="submit"]' ? submitButton : null;
+  form.querySelector = (selector) => {
+    if (selector === 'button[type="submit"]') return submitButton;
+    if (selector === '#employee-edit-cancel') return cancelEditButton;
+    return null;
+  };
   form.setValues = (values) => {
     form.values = values;
     for (const [name, field] of Object.entries(fields)) {
@@ -99,6 +117,7 @@ function setupForm() {
       if (selector === '#employee-form') return form;
       if (selector === '#employee-department') return departmentSelect;
       if (selector === '#employee-form-feedback') return feedback;
+      if (selector === '#employee-form-title') return title;
       const errorField = fieldNames.find((name) => selector === `#employee-${name}-error`);
       if (errorField) return errors[errorField];
       return null;
@@ -106,7 +125,16 @@ function setupForm() {
   });
   vi.stubGlobal('FormData', FormDataStub);
 
-  return { departmentSelect, errors, feedback, fields, form, submitButton };
+  return {
+    cancelEditButton,
+    departmentSelect,
+    errors,
+    feedback,
+    fields,
+    form,
+    submitButton,
+    title,
+  };
 }
 
 afterEach(() => {
@@ -194,6 +222,69 @@ describe('Employee registration form', () => {
     expect(feedback.dataset.state).toBe('error');
     expect(form.resetCalls).toBe(0);
     expect(submitButton.disabled).toBe(false);
+  });
+
+  it('should edit the selected employee through the store and preserve unchanged data', () => {
+    const { cancelEditButton, feedback, fields, form, submitButton, title } = setupForm();
+    const email = `form-edit-${Date.now()}@staffpulse.com`;
+    const [employee] = addEmployee({
+      name: 'Fernanda Oliveira',
+      email,
+      salary: 6500,
+      admissionDate: '2022-03-10',
+      department: 'TI',
+    });
+
+    initializeEmployeeForm();
+    startEmployeeEdit(employee.id);
+
+    expect(fields.name.value).toBe('Fernanda Oliveira');
+    expect(fields.email.value).toBe(email);
+    expect(title.textContent).toBe('Editar colaborador');
+    expect(submitButton.textContent).toBe('Salvar alterações');
+    expect(cancelEditButton.hidden).toBe(false);
+
+    fields.salary.value = '7200';
+    form.listeners.get('submit')({ preventDefault() {} });
+
+    const updatedEmployee = getEmployees().find(({ id }) => id === employee.id);
+    expect(updatedEmployee).toMatchObject({
+      id: employee.id,
+      name: 'Fernanda Oliveira',
+      email,
+      salary: 7200,
+      admissionDate: '2022-03-10',
+      department: 'TI',
+      status: 'ativo',
+    });
+    expect(feedback.textContent).toBe('Colaborador atualizado com sucesso.');
+    expect(submitButton.textContent).toBe('Cadastrar colaborador');
+    expect(cancelEditButton.hidden).toBe(true);
+
+    removeEmployee(employee.id);
+  });
+
+  it('should cancel editing and restore the registration form', () => {
+    const { cancelEditButton, fields, submitButton, title } = setupForm();
+    const email = `form-cancel-${Date.now()}@staffpulse.com`;
+    const [employee] = addEmployee({
+      name: 'Fernanda Oliveira',
+      email,
+      salary: 6500,
+      admissionDate: '2022-03-10',
+      department: 'TI',
+    });
+
+    initializeEmployeeForm();
+    startEmployeeEdit(employee.id);
+    cancelEditButton.listeners.get('click')();
+
+    expect(fields.name.value).toBe('');
+    expect(title.textContent).toBe('Novo colaborador');
+    expect(submitButton.textContent).toBe('Cadastrar colaborador');
+    expect(cancelEditButton.hidden).toBe(true);
+
+    removeEmployee(employee.id);
   });
 
   it('should ignore a repeated submit while a creation is notifying subscribers', () => {
