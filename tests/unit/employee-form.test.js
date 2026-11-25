@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   addEmployee,
-  editEmployee,
   getEmployees,
   removeEmployee,
   subscribeToEmployeeChanges,
@@ -240,6 +239,11 @@ describe('Employee registration form', () => {
 
     expect(fields.name.value).toBe('Fernanda Oliveira');
     expect(fields.email.value).toBe(email);
+    expect(fields.salary.value).toBe(6500);
+    expect(fields.admissionDate.value).toBe('2022-03-10');
+    expect(fields.department.value).toBe('TI');
+    expect(form.elements.namedItem('id')).toBeNull();
+    expect(Object.isFrozen(employee)).toBe(true);
     expect(title.textContent).toBe('Editar colaborador');
     expect(submitButton.textContent).toBe('Salvar alterações');
     expect(cancelEditButton.hidden).toBe(false);
