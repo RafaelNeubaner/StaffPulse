@@ -11,6 +11,7 @@ import {
   initializeEmployeeList,
 } from '../../src/js/employee-list.js';
 import { ALLOWED_DEPARTMENTS, ALLOWED_STATUSES } from '../../src/js/validators.js';
+import { initializeNotifications } from '../../src/js/notifications.js';
 
 class ElementStub {
   constructor() {
@@ -80,7 +81,7 @@ function setupListElements() {
     '#employee-details-dialog': new ElementStub(),
     '#employee-details-content': new ElementStub(),
     '#employee-details-close': new ElementStub(),
-    '#employee-list-feedback': new ElementStub(),
+    '#notification-region': new ElementStub(),
     '#employee-operation-dialog': new ElementStub(),
     '#employee-operation-title': new ElementStub(),
     '#employee-operation-description': new ElementStub(),
@@ -95,8 +96,9 @@ function setupListElements() {
     value,
   }));
   elements['#employee-sort-order'].value = 'asc';
-  elements['#employee-list-feedback'].hidden = true;
+  elements['#notification-region'].hidden = true;
   elements['#employee-operation-confirm'].disabled = false;
+  initializeNotifications(elements['#notification-region']);
   return elements;
 }
 
@@ -333,7 +335,7 @@ describe('Employee list', () => {
     const operationDescription = elements['#employee-operation-description'];
     const confirmButton = elements['#employee-operation-confirm'];
     const cancelButton = elements['#employee-operation-cancel'];
-    const feedback = elements['#employee-list-feedback'];
+    const feedback = elements['#notification-region'];
     stubListDocument(elements);
 
     const employeeId = `employee-removal-${Date.now()}`;
@@ -370,8 +372,8 @@ describe('Employee list', () => {
       expect(getEmployees().find(({ id }) => id === employeeId).status).toBe('inativo');
       expect(getRenderedText(container)).toContain('inativo');
       expect(findAction('Inativar Rita Gomes')).toBeUndefined();
-      expect(feedback.textContent).toBe('Rita Gomes foi inativado com sucesso.');
-      expect(feedback.dataset.state).toBe('success');
+      expect(feedback.children[0].textContent).toBe('Rita Gomes foi inativado com sucesso.');
+      expect(feedback.dataset.type).toBe('success');
 
       findAction('Excluir permanentemente Rita Gomes').listeners.get('click')();
       operationDialog.close();
@@ -386,7 +388,7 @@ describe('Employee list', () => {
       confirmButton.listeners.get('click')();
       expect(getEmployees().some(({ id }) => id === employeeId)).toBe(false);
       expect(getRenderedText(container)).toContain('Nenhum colaborador cadastrado.');
-      expect(feedback.textContent).toBe('Rita Gomes foi excluído permanentemente.');
+      expect(feedback.children[0].textContent).toBe('Rita Gomes foi excluído permanentemente.');
     } finally {
       unsubscribe();
       if (getEmployees().some(({ id }) => id === employeeId)) {
@@ -399,7 +401,7 @@ describe('Employee list', () => {
     const elements = setupListElements();
     const container = elements['#employee-list-content'];
     const confirmButton = elements['#employee-operation-confirm'];
-    const feedback = elements['#employee-list-feedback'];
+    const feedback = elements['#notification-region'];
     stubListDocument(elements);
 
     const employeeId = `employee-removal-error-${Date.now()}`;
@@ -422,8 +424,8 @@ describe('Employee list', () => {
         .listeners.get('click')();
       confirmButton.listeners.get('click')();
 
-      expect(feedback.textContent).toBe('Não foi possível persistir os colaboradores.');
-      expect(feedback.dataset.state).toBe('error');
+      expect(feedback.children[0].textContent).toBe('Não foi possível persistir os colaboradores.');
+      expect(feedback.dataset.type).toBe('error');
       expect(getEmployees().some(({ id }) => id === employeeId)).toBe(true);
     } finally {
       vi.restoreAllMocks();

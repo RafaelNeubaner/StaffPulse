@@ -7,6 +7,7 @@ import {
 } from '../../src/js/employee-store.js';
 import * as employeeStore from '../../src/js/employee-store.js';
 import { ALLOWED_DEPARTMENTS } from '../../src/js/validators.js';
+import { initializeNotifications } from '../../src/js/notifications.js';
 import {
   initializeEmployeeForm,
   startEmployeeEdit,
@@ -40,6 +41,12 @@ class ElementStub {
 
   replaceChildren(...children) {
     this.options = children;
+    this.children = children;
+    this.textContent = '';
+  }
+
+  append(...children) {
+    this.children.push(...children);
   }
 
   reset() {
@@ -108,14 +115,15 @@ function setupForm() {
   };
 
   const departmentSelect = new ElementStub();
-  const feedback = new ElementStub();
+  const notificationRegion = new ElementStub();
+  notificationRegion.hidden = true;
 
   vi.stubGlobal('document', {
     createElement: () => new ElementStub(),
     querySelector(selector) {
       if (selector === '#employee-form') return form;
       if (selector === '#employee-department') return departmentSelect;
-      if (selector === '#employee-form-feedback') return feedback;
+      if (selector === '#notification-region') return notificationRegion;
       if (selector === '#employee-form-title') return title;
       const errorField = fieldNames.find((name) => selector === `#employee-${name}-error`);
       if (errorField) return errors[errorField];
@@ -123,12 +131,13 @@ function setupForm() {
     },
   });
   vi.stubGlobal('FormData', FormDataStub);
+  initializeNotifications(notificationRegion);
 
   return {
     cancelEditButton,
     departmentSelect,
     errors,
-    feedback,
+    notificationRegion,
     fields,
     form,
     submitButton,
@@ -164,7 +173,7 @@ describe('Employee registration form', () => {
   });
 
   it('should create an employee through the store and show success feedback', () => {
-    const { feedback, form } = setupForm();
+    const { notificationRegion, form } = setupForm();
     initializeEmployeeForm();
     const email = `form-${Date.now()}@staffpulse.com`;
     form.setValues({
@@ -194,15 +203,15 @@ describe('Employee registration form', () => {
       department: 'TI',
       status: 'ativo',
     });
-    expect(feedback.textContent).toBe('Colaborador cadastrado com sucesso.');
-    expect(feedback.dataset.state).toBe('success');
+    expect(notificationRegion.children[0].textContent).toBe('Colaborador cadastrado com sucesso.');
+    expect(notificationRegion.dataset.type).toBe('success');
     expect(form.resetCalls).toBe(1);
 
     removeEmployee(createdEmployee.id);
   });
 
   it('should show service errors and leave the form available for retry', () => {
-    const { feedback, form, submitButton } = setupForm();
+    const { notificationRegion, form, submitButton } = setupForm();
     initializeEmployeeForm();
     form.setValues({
       name: 'Joana Silva',
@@ -217,14 +226,14 @@ describe('Employee registration form', () => {
 
     form.listeners.get('submit')({ preventDefault() {} });
 
-    expect(feedback.textContent).toBe('Não foi possível persistir os colaboradores.');
-    expect(feedback.dataset.state).toBe('error');
+    expect(notificationRegion.children[0].textContent).toBe('Não foi possível persistir os colaboradores.');
+    expect(notificationRegion.dataset.type).toBe('error');
     expect(form.resetCalls).toBe(0);
     expect(submitButton.disabled).toBe(false);
   });
 
   it('should edit the selected employee through the store and preserve unchanged data', () => {
-    const { cancelEditButton, feedback, fields, form, submitButton, title } = setupForm();
+    const { cancelEditButton, notificationRegion, fields, form, submitButton, title } = setupForm();
     const email = `form-edit-${Date.now()}@staffpulse.com`;
     const [employee] = addEmployee({
       name: 'Fernanda Oliveira',
@@ -261,7 +270,7 @@ describe('Employee registration form', () => {
       department: 'TI',
       status: 'ativo',
     });
-    expect(feedback.textContent).toBe('Colaborador atualizado com sucesso.');
+    expect(notificationRegion.children[0].textContent).toBe('Colaborador atualizado com sucesso.');
     expect(submitButton.textContent).toBe('Cadastrar colaborador');
     expect(cancelEditButton.hidden).toBe(true);
 
@@ -370,20 +379,20 @@ describe('Employee registration form', () => {
   });
 
   it('should clear feedback when the form is reset', () => {
-    const { errors, feedback, fields, form } = setupForm();
+    const { errors, notificationRegion, fields, form } = setupForm();
     initializeEmployeeForm();
-    feedback.textContent = 'Previous feedback';
-    feedback.dataset.state = 'error';
-    feedback.hidden = false;
+    notificationRegion.textContent = 'Previous feedback';
+    notificationRegion.dataset.type = 'error';
+    notificationRegion.hidden = false;
     errors.name.textContent = 'Nome inválido.';
     errors.name.hidden = false;
     fields.name.setAttribute('aria-invalid', 'true');
 
     form.reset();
 
-    expect(feedback.textContent).toBe('');
-    expect(feedback.dataset.state).toBeUndefined();
-    expect(feedback.hidden).toBe(true);
+    expect(notificationRegion.textContent).toBe('');
+    expect(notificationRegion.dataset.type).toBeUndefined();
+    expect(notificationRegion.hidden).toBe(true);
     expect(errors.name.textContent).toBe('');
     expect(errors.name.hidden).toBe(true);
     expect(fields.name.getAttribute('aria-invalid')).toBe('false');

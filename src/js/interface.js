@@ -1,4 +1,5 @@
 import { getStorageError } from './employee-store.js';
+import { initializeNotifications, showNotification } from './notifications.js';
 
 export function initializeInterface() {
   const pageTitle = document.querySelector('#page-title');
@@ -9,6 +10,8 @@ export function initializeInterface() {
   if (!pageTitle || navigationLinks.length === 0 || pageSections.length === 0) {
     throw new Error('A estrutura de navegação do StaffPulse está incompleta.');
   }
+
+  initializeNotifications(notificationRegion);
 
   const updateActivePage = () => {
     const requestedPage = window.location.hash.slice(1);
@@ -38,15 +41,8 @@ export function initializeInterface() {
 
   window.addEventListener('hashchange', updateActivePage);
   updateActivePage();
-  renderStorageStatus(notificationRegion);
-}
-
-function renderStorageStatus(container) {
-  if (!container) {
-    return;
-  }
-
   const storageError = getStorageError();
-  container.textContent = storageError ? storageError.message : '';
-  container.hidden = !storageError;
+  if (storageError) {
+    showNotification(storageError.message, { type: 'error' });
+  }
 }

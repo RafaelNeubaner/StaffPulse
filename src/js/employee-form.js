@@ -1,4 +1,5 @@
 import { addEmployee, editEmployee, getEmployees } from './employee-store.js';
+import { dismissNotification, showNotification } from './notifications.js';
 import {
   ALLOWED_DEPARTMENTS,
   ValidationError,
@@ -22,12 +23,11 @@ let activeFormController = null;
 export function initializeEmployeeForm() {
   const form = document.querySelector('#employee-form');
   const departmentSelect = document.querySelector('#employee-department');
-  const feedback = document.querySelector('#employee-form-feedback');
   const submitButton = form?.querySelector('button[type="submit"]');
   const cancelEditButton = form?.querySelector('#employee-edit-cancel');
   const title = document.querySelector('#employee-form-title');
 
-  if (!form || !departmentSelect || !feedback || !submitButton || !cancelEditButton || !title) {
+  if (!form || !departmentSelect || !submitButton || !cancelEditButton || !title) {
     throw new Error('A estrutura do formulário de colaboradores está incompleta.');
   }
 
@@ -63,7 +63,6 @@ export function initializeEmployeeForm() {
       title.textContent = 'Editar colaborador';
       submitButton.textContent = 'Salvar alterações';
       cancelEditButton.hidden = false;
-      clearFeedback(feedback);
       fields[0].input.focus();
     },
   };
@@ -80,7 +79,9 @@ export function initializeEmployeeForm() {
 
     const firstInvalidField = validateFields(fields);
     if (firstInvalidField) {
-      clearFeedback(feedback);
+      showNotification('Revise os campos destacados antes de continuar.', {
+        type: 'warning',
+      });
       firstInvalidField.input.focus();
       return;
     }
@@ -98,11 +99,11 @@ export function initializeEmployeeForm() {
         );
         editEmployee(editingEmployee.id, updates);
         cancelEditing();
-        showFeedback(feedback, 'Colaborador atualizado com sucesso.', 'success');
+        showNotification('Colaborador atualizado com sucesso.', { type: 'success' });
       } else {
         addEmployee(employeeData);
         form.reset();
-        showFeedback(feedback, 'Colaborador cadastrado com sucesso.', 'success');
+        showNotification('Colaborador cadastrado com sucesso.', { type: 'success' });
       }
     } catch (error) {
       if (!(error instanceof Error)) {
@@ -114,11 +115,14 @@ export function initializeEmployeeForm() {
         if (invalidField) {
           showFieldError(invalidField, error.message);
           invalidField.input.focus();
+          showNotification('Revise os campos destacados antes de continuar.', {
+            type: 'warning',
+          });
           return;
         }
       }
 
-      showFeedback(feedback, error.message, 'error');
+      showNotification(error.message, { type: 'error' });
     } finally {
       isSubmitting = false;
       submitButton.disabled = false;
@@ -139,7 +143,7 @@ export function initializeEmployeeForm() {
     for (const field of fields) {
       clearFieldError(field);
     }
-    clearFeedback(feedback);
+    dismissNotification();
   });
 }
 
@@ -209,16 +213,4 @@ function populateDepartments(select) {
   });
 
   select.replaceChildren(placeholder, ...options);
-}
-
-function showFeedback(container, message, state) {
-  container.textContent = message;
-  container.dataset.state = state;
-  container.hidden = false;
-}
-
-function clearFeedback(container) {
-  container.textContent = '';
-  delete container.dataset.state;
-  container.hidden = true;
 }

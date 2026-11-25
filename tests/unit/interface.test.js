@@ -30,7 +30,14 @@ function createSection(page, title) {
 
 function createInterfaceEnvironment(hash = '') {
   const pageTitle = { textContent: '' };
-  const notificationRegion = { textContent: '', hidden: false };
+  const notificationRegion = {
+    textContent: '',
+    hidden: false,
+    setAttribute() {},
+    replaceChildren() {
+      this.textContent = '';
+    },
+  };
   const links = [createLink('dashboard'), createLink('employees')];
   const sections = [
     createSection('dashboard', 'Dashboard'),

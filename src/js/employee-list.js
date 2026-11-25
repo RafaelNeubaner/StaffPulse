@@ -4,6 +4,7 @@ import {
   subscribeToEmployeeChanges,
 } from './employee-store.js';
 import { startEmployeeEdit } from './employee-form.js';
+import { showNotification } from './notifications.js';
 import {
   filterEmployees as filterEmployeesByCriteria,
   searchByName,
@@ -31,7 +32,6 @@ export function initializeEmployeeList() {
   const detailsDialog = document.querySelector('#employee-details-dialog');
   const detailsContent = document.querySelector('#employee-details-content');
   const closeDetailsButton = document.querySelector('#employee-details-close');
-  const listFeedback = document.querySelector('#employee-list-feedback');
   const operationDialog = document.querySelector('#employee-operation-dialog');
   const operationTitle = document.querySelector('#employee-operation-title');
   const operationDescription = document.querySelector('#employee-operation-description');
@@ -49,7 +49,6 @@ export function initializeEmployeeList() {
     !detailsDialog ||
     !detailsContent ||
     !closeDetailsButton ||
-    !listFeedback ||
     !operationDialog ||
     !operationTitle ||
     !operationDescription ||
@@ -64,6 +63,18 @@ export function initializeEmployeeList() {
 
   let pendingOperation = null;
   let operationInProgress = false;
+
+  const reportActionError = (action) => {
+    try {
+      action();
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        throw error;
+      }
+
+      showNotification(error.message, { type: 'error' });
+    }
+  };
 
   const getActiveFilters = () => ({
     department: departmentFilter.value,
@@ -82,7 +93,10 @@ export function initializeEmployeeList() {
     );
     renderEmployeeList(container, visibleEmployees, {
       filters,
-      onRequestRemoval: openRemovalConfirmation,
+      onRequestRemoval: (employeeId, logical) =>
+        reportActionError(() => openRemovalConfirmation(employeeId, logical)),
+      onRequestEdit: (employeeId) =>
+        reportActionError(() => startEmployeeEdit(employeeId)),
       query,
     });
     clearSearchButton.hidden = !query.trim();
@@ -127,20 +141,19 @@ export function initializeEmployeeList() {
 
     try {
       removeEmployee(employeeId, { logical });
-      listFeedback.textContent = logical
-        ? `${employeeName} foi inativado com sucesso.`
-        : `${employeeName} foi excluído permanentemente.`;
-      listFeedback.dataset.state = 'success';
-      listFeedback.hidden = false;
+      showNotification(
+        logical
+          ? `${employeeName} foi inativado com sucesso.`
+          : `${employeeName} foi excluído permanentemente.`,
+        { type: 'success' }
+      );
       closeOperationDialog();
     } catch (error) {
       if (!(error instanceof Error)) {
         throw error;
       }
 
-      listFeedback.textContent = error.message;
-      listFeedback.dataset.state = 'error';
-      listFeedback.hidden = false;
+      showNotification(error.message, { type: 'error' });
       closeOperationDialog();
     } finally {
       operationInProgress = false;
@@ -187,7 +200,7 @@ export function getVisibleEmployees(
 export function renderEmployeeList(
   container,
   employees,
-  { query = '', filters = {}, onRequestRemoval } = {}
+  { query = '', filters = {}, onRequestRemoval, onRequestEdit } = {}
 ) {
   const hasCriteria =
     Boolean(query.trim()) ||
@@ -284,7 +297,7 @@ export function renderEmployeeList(
     const editButton = createActionButton(
       'Editar',
       `Editar ${employee.name}`,
-      () => startEmployeeEdit(employee.id)
+      () => onRequestEdit?.(employee.id)
     );
     actionCell.append(detailsButton, editButton);
     if (employee.status === 'ativo') {
