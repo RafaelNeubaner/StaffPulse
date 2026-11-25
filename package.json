@@ -6,6 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "test:watch": "vitest",
     "serve": "node scripts/serve.js"
   },
@@ -19,6 +20,7 @@
   "author": "Rafael",
   "license": "MIT",
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@vitest/coverage-v8": "^5.1.0",
     "vitest": "^5.1.0"
   }

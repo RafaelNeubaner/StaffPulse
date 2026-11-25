@@ -60,7 +60,7 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
 - **Testes Unitários:** [Vitest](https://vitest.dev/) (`v5.1.0`)
 - **Cobertura de Código:** `@vitest/coverage-v8` (meta $\ge 80\%$; relatório mais recente: 95,93% statements, 93,55% branches, 95,76% functions e 95,97% lines)
 - **Testes End-to-End (Dev 2):** Playwright
-- **Integração Contínua (Dev 2):** GitHub Actions (`ubuntu-latest`, `windows-latest`, `macos-latest`)
+- **Integração Contínua (Dev 2):** GitHub Actions em push e pull request (`ubuntu-latest`, `macos-latest`, `windows-latest`), com testes unitários, cobertura e Playwright.
 
 ---
 
@@ -78,13 +78,13 @@ Ferramentas de IA generativa foram empregadas como apoio técnico nas seguintes 
 ## 5. Instruções Claras de Execução Local
 
 ### Pré-requisitos
-- **Node.js** `v18+` (ou `v20+` / `v24+`) e **npm** instalados.
+- **Node.js 24** e **npm** instalados.
 
 ### Passo a passo
 
 1. **Instalar as dependências do projeto:**
    ```bash
-   npm install
+   npm ci
    ```
 
 2. **Iniciar a estrutura inicial da interface:**
@@ -98,8 +98,21 @@ Ferramentas de IA generativa foram empregadas como apoio técnico nas seguintes 
    npm test
    ```
 
-3. **Executar os testes unitários com relatório de cobertura (c8/v8):**
+4. **Executar os testes unitários com relatório de cobertura (c8/v8):**
    ```bash
    npm run test:unit
    ```
-   *(Ou diretamente via `npx vitest run --coverage`)*
+   O Vitest falha quando statements, branches, functions ou lines ficam abaixo de 80%.
+
+5. **Instalar o Chromium do Playwright e executar os testes E2E:**
+   ```bash
+   npx playwright install chromium
+   npm run test:e2e
+   ```
+   O Playwright inicia e encerra o servidor local automaticamente.
+
+## 6. Integração contínua
+
+O workflow [`ci.yml`](.github/workflows/ci.yml) é executado em cada push e pull request. Ele usa Node.js 24 e executa `npm ci`, os testes unitários, a cobertura com os limites configurados e os testes E2E nas três plataformas: Ubuntu, macOS e Windows. Os relatórios de cobertura e do Playwright são anexados à execução como artefatos.
+
+Para acompanhar uma execução no GitHub, abra a aba **Actions**, selecione **StaffPulse CI** e depois a execução desejada. Cada sistema operacional aparece como um job separado; seus logs mostram o resultado de cada etapa, e a seção **Artifacts** disponibiliza os relatórios gerados.
