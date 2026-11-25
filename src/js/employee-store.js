@@ -16,6 +16,7 @@ import {
 export function createEmployeeStore(storage = getBrowserStorage()) {
   let employees = Object.freeze([]);
   let storageError = null;
+  const subscribers = new Set();
 
   try {
     const persistedRecords = loadEmployeeRecords(storage);
@@ -37,10 +38,18 @@ export function createEmployeeStore(storage = getBrowserStorage()) {
       saveEmployeeRecords(storage, nextEmployees);
     } catch (error) {
       storageError = error;
+      notifySubscribers();
       throw error;
     }
 
     storageError = null;
+    notifySubscribers();
+  }
+
+  function notifySubscribers() {
+    for (const subscriber of subscribers) {
+      subscriber(employees);
+    }
   }
 
   return {
@@ -50,6 +59,15 @@ export function createEmployeeStore(storage = getBrowserStorage()) {
 
     getStorageError() {
       return storageError;
+    },
+
+    subscribe(subscriber) {
+      if (typeof subscriber !== 'function') {
+        throw new Error('O ouvinte de alterações deve ser uma função.');
+      }
+
+      subscribers.add(subscriber);
+      return () => subscribers.delete(subscriber);
     },
 
     addEmployee(employeeData) {
@@ -124,4 +142,8 @@ export function getPayrollStats() {
 
 export function getStorageError() {
   return employeeStore.getStorageError();
+}
+
+export function subscribeToEmployeeChanges(subscriber) {
+  return employeeStore.subscribe(subscriber);
 }

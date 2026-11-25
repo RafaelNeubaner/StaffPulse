@@ -61,10 +61,36 @@
                 </p>
               </div>
             </header>
-            <div class="content-placeholder">
-              <span class="placeholder-accent" aria-hidden="true"></span>
-              <p>O espaço de visão geral está preparado para as próximas etapas.</p>
+            <div id="dashboard-indicators" class="dashboard-indicators" aria-live="polite">
+              <article class="indicator-card indicator-card--active">
+                <p class="indicator-label">Colaboradores ativos</p>
+                <p id="active-employees" class="indicator-value">0</p>
+                <p class="indicator-caption">Pessoas ativas na organização</p>
+              </article>
+              <article class="indicator-card">
+                <p class="indicator-label">Total de colaboradores</p>
+                <p id="total-employees" class="indicator-value">0</p>
+                <p class="indicator-caption">Registros cadastrados</p>
+              </article>
+              <article class="indicator-card indicator-card--payroll">
+                <p class="indicator-label">Folha salarial</p>
+                <p id="total-payroll" class="indicator-value">R$ 0,00</p>
+                <p class="indicator-caption">Valor total mensal informado</p>
+              </article>
+              <article class="indicator-card">
+                <p class="indicator-label">Salário médio</p>
+                <p id="average-salary" class="indicator-value">R$ 0,00</p>
+                <p class="indicator-caption">Média entre todos os colaboradores</p>
+              </article>
             </div>
+
+            <section class="role-summary" aria-labelledby="role-summary-title">
+              <div>
+                <p class="section-kicker">Composição da equipe</p>
+                <h3 id="role-summary-title">Colaboradores por cargo</h3>
+              </div>
+              <p id="role-counts" class="role-counts">Nenhum colaborador cadastrado.</p>
+            </section>
           </section>
 
           <section

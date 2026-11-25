@@ -73,6 +73,20 @@ describe('Employee store', () => {
     expect(removed).toHaveLength(0);
   });
 
+  it('should notify subscribers after employee changes and stop after unsubscribe', () => {
+    const store = createEmployeeStore(createMemoryStorage());
+    const observedCounts = [];
+    const unsubscribe = store.subscribe((employees) => observedCounts.push(employees.length));
+
+    store.addEmployee({ ...employeeData, id: 'emp-1' });
+    store.editEmployee('emp-1', { salary: 7000 });
+    store.removeEmployee('emp-1');
+    unsubscribe();
+    store.addEmployee({ ...employeeData, id: 'emp-2' });
+
+    expect(observedCounts).toEqual([1, 1, 0]);
+  });
+
   it('should search, filter, sort, and calculate statistics through the store', () => {
     const store = createEmployeeStore(createMemoryStorage());
     store.addEmployee({ ...employeeData, id: 'emp-1' });

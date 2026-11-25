@@ -39,6 +39,10 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
 - **Repositório de persistência (`src/js/employee-repository.js`):**
   - Recupera e valida o formato da lista armazenada no navegador.
   - Exibe `StorageError` para dados inacessíveis ou corrompidos e `PersistenceError` para falhas de gravação.
+- **Dashboard (`src/js/dashboard.js`):**
+  - Apresenta colaboradores ativos e total cadastrado, folha salarial e salário médio.
+  - Exibe a distribuição por cargo usando os resultados de `calculatePayrollStats`.
+  - Atualiza os indicadores quando a store notifica alterações nos colaboradores.
 
 ---
 
@@ -46,7 +50,7 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
 
 - **Linguagem & Arquitetura:** JavaScript ES6+ (ES Modules desacoplados do DOM), HTML5 Semântico, CSS3
 - **Testes Unitários:** [Vitest](https://vitest.dev/) (`v5.1.0`)
-- **Cobertura de Código:** `@vitest/coverage-v8` (meta $\ge 80\%$, atingido $> 99\%$)
+- **Cobertura de Código:** `@vitest/coverage-v8` (meta $\ge 80\%$; relatório mais recente: 95,66% statements, 97,19% branches, 91,52% functions e 95,54% lines)
 - **Testes End-to-End (Dev 2):** Playwright
 - **Integração Contínua (Dev 2):** GitHub Actions (`ubuntu-latest`, `windows-latest`, `macos-latest`)
 

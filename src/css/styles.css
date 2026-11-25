@@ -324,6 +324,97 @@ textarea {
   line-height: 1.6;
 }
 
+.dashboard-indicators {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.indicator-card {
+  position: relative;
+  min-width: 0;
+  padding: var(--space-5);
+  overflow: hidden;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.indicator-card::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--color-gray-300);
+  content: "";
+}
+
+.indicator-card--active::before {
+  background: var(--color-teal-500);
+}
+
+.indicator-card--payroll::before {
+  background: var(--color-amber-500);
+}
+
+.indicator-label {
+  margin: 0;
+  color: var(--color-gray-700);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.indicator-value {
+  margin: var(--space-4) 0 var(--space-2);
+  color: var(--color-navy-950);
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.indicator-card--payroll .indicator-value {
+  color: var(--color-teal-600);
+}
+
+.indicator-caption {
+  margin: 0;
+  color: var(--color-gray-500);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.role-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  margin-top: var(--space-6);
+  padding: var(--space-5) var(--space-6);
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.role-summary h3 {
+  margin: 0;
+  color: var(--color-navy-950);
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.role-counts {
+  margin: 0;
+  color: var(--color-gray-700);
+  font-size: 0.86rem;
+  line-height: 1.6;
+  text-align: right;
+}
+
 .placeholder-accent {
   flex: 0 0 auto;
   width: 4px;
@@ -415,6 +506,20 @@ a:focus-visible {
   .workspace-footer {
     padding: var(--space-4) var(--space-5);
   }
+
+  .dashboard-indicators {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .role-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .role-counts {
+    text-align: left;
+  }
 }
 
 @media (max-width: 420px) {
@@ -433,6 +538,10 @@ a:focus-visible {
   .workspace-footer {
     flex-direction: column;
     gap: var(--space-1);
+  }
+
+  .dashboard-indicators {
+    grid-template-columns: 1fr;
   }
 }
 
