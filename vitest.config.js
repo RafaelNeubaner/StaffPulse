@@ -5,7 +5,12 @@ export default defineConfig({
     include: ['tests/unit/**/*.test.js'],
     coverage: {
       provider: 'v8',
-      include: ['src/js/validators.js', 'src/js/employee-service.js'],
+      include: [
+        'src/js/validators.js',
+        'src/js/employee-service.js',
+        'src/js/employee-store.js',
+        'src/js/employee-repository.js',
+      ],
       reporter: ['text', 'html', 'lcov'],
       thresholds: {
         lines: 80,

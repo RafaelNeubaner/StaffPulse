@@ -31,6 +31,15 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
   - `searchByName(list, query)`: Busca textual insensível a maiúsculas/minúsculas.
   - `calculatePayrollStats(list)`: Calcula soma total da folha salarial, média salarial, total de colaboradores ativos e contagem por cargo.
 
+- **Camada de integração (`src/js/employee-store.js`):**
+  - Mantém o estado atual em uma store desacoplada da interface.
+  - Encaminha CRUD, busca, filtros, ordenação e estatísticas para os serviços de domínio.
+  - Persiste os registros no `localStorage` sem armazenar dados fictícios.
+  - Preserva IDs existentes e não perde o estado atual em memória quando a gravação falha.
+- **Repositório de persistência (`src/js/employee-repository.js`):**
+  - Recupera e valida o formato da lista armazenada no navegador.
+  - Exibe `StorageError` para dados inacessíveis ou corrompidos e `PersistenceError` para falhas de gravação.
+
 ---
 
 ## 3. Tecnologias Utilizadas
