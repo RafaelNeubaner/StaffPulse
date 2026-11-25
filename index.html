@@ -7,31 +7,103 @@
       name="description"
       content="StaffPulse - sistema de cadastro e gestão de colaboradores"
     />
-    <title>StaffPulse</title>
+    <title>StaffPulse | Dashboard</title>
     <link rel="stylesheet" href="./src/css/styles.css" />
   </head>
   <body>
     <div class="app-shell">
-      <header class="app-header">
-        <a class="brand" href="./" aria-label="Página inicial do StaffPulse">
-          StaffPulse
+      <aside class="sidebar" aria-label="Navegação principal">
+        <a class="brand" href="#dashboard" aria-label="StaffPulse, ir ao Dashboard">
+          <span class="brand-mark" aria-hidden="true">S</span>
+          <span class="brand-name">Staff<span>Pulse</span></span>
         </a>
-      </header>
 
-      <main id="app" class="app-main">
-        <section class="welcome" aria-labelledby="welcome-title">
-          <p class="eyebrow">Sistema de gestão de pessoas</p>
-          <h1 id="welcome-title">Bem-vindo ao StaffPulse</h1>
-          <p>
-            Estrutura inicial pronta para o cadastro e gerenciamento de colaboradores.
-          </p>
-          <div id="employee-count" class="employee-count" aria-live="polite">
-            Nenhum colaborador cadastrado.
+        <div class="sidebar-label">Workspace</div>
+        <nav class="primary-navigation" aria-label="Seções do sistema">
+          <a class="navigation-link" href="#dashboard" data-page="dashboard">
+            <span class="navigation-icon" aria-hidden="true">◫</span>
+            <span>Dashboard</span>
+          </a>
+          <a class="navigation-link" href="#employees" data-page="employees">
+            <span class="navigation-icon" aria-hidden="true">♙</span>
+            <span>Colaboradores</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <span class="sidebar-footer-mark" aria-hidden="true"></span>
+          <span>Gestão de pessoas</span>
+        </div>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <div class="page-heading">
+            <p class="eyebrow">StaffPulse / Workspace</p>
+            <h1 id="page-title">Dashboard</h1>
           </div>
-          <div id="storage-status" class="storage-status" aria-live="polite"></div>
-        </section>
-      </main>
+          <div class="topbar-context">Organização</div>
+        </header>
+
+        <main id="main-content" class="main-content">
+          <section
+            id="dashboard"
+            class="page-section"
+            data-page-section="dashboard"
+            aria-labelledby="dashboard-title"
+          >
+            <header class="section-heading">
+              <div>
+                <p class="section-kicker">Visão geral</p>
+                <h2 id="dashboard-title">Dashboard</h2>
+                <p class="section-description">
+                  Acompanhe a gestão de pessoas da sua organização em um só lugar.
+                </p>
+              </div>
+            </header>
+            <div class="content-placeholder">
+              <span class="placeholder-accent" aria-hidden="true"></span>
+              <p>O espaço de visão geral está preparado para as próximas etapas.</p>
+            </div>
+          </section>
+
+          <section
+            id="employees"
+            class="page-section"
+            data-page-section="employees"
+            aria-labelledby="employees-title"
+            hidden
+          >
+            <header class="section-heading">
+              <div>
+                <p class="section-kicker">Equipe</p>
+                <h2 id="employees-title">Colaboradores</h2>
+                <p class="section-description">
+                  Consulte e organize as informações dos colaboradores.
+                </p>
+              </div>
+            </header>
+            <div class="content-placeholder">
+              <span class="placeholder-accent" aria-hidden="true"></span>
+              <p>A área de colaboradores está preparada para as próximas etapas.</p>
+            </div>
+          </section>
+        </main>
+
+        <footer class="workspace-footer">
+          <span>StaffPulse</span>
+          <span>Gestão clara. Pessoas em foco.</span>
+        </footer>
+      </div>
     </div>
+
+    <div
+      id="notification-region"
+      class="notification-region"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
 
     <script type="module" src="./src/js/app.js"></script>
   </body>

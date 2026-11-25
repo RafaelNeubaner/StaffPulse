@@ -1,23 +1,44 @@
-import { getEmployees, getStorageError } from './employee-store.js';
+import { getStorageError } from './employee-store.js';
 
 export function initializeInterface() {
-  const employeeCount = document.querySelector('#employee-count');
-  const storageStatus = document.querySelector('#storage-status');
+  const pageTitle = document.querySelector('#page-title');
+  const navigationLinks = [...document.querySelectorAll('[data-page]')];
+  const pageSections = [...document.querySelectorAll('[data-page-section]')];
+  const notificationRegion = document.querySelector('#notification-region');
 
-  if (!employeeCount) {
-    throw new Error('Elemento da interface "#employee-count" não encontrado.');
+  if (!pageTitle || navigationLinks.length === 0 || pageSections.length === 0) {
+    throw new Error('A estrutura de navegação do StaffPulse está incompleta.');
   }
 
-  renderEmployeeCount(employeeCount);
-  renderStorageStatus(storageStatus);
-}
+  const updateActivePage = () => {
+    const requestedPage = window.location.hash.slice(1);
+    const currentPage = pageSections.some((section) => section.dataset.pageSection === requestedPage)
+      ? requestedPage
+      : 'dashboard';
 
-function renderEmployeeCount(container) {
-  const total = getEmployees().length;
-  container.textContent =
-    total === 0
-      ? 'Nenhum colaborador cadastrado.'
-      : `${total} colaborador${total === 1 ? '' : 'es'} cadastrado${total === 1 ? '' : 's'}.`;
+    const activeTitle =
+      pageSections.find((section) => section.dataset.pageSection === currentPage)
+        ?.querySelector('h2')
+        ?.textContent ?? 'Dashboard';
+    pageTitle.textContent = activeTitle;
+    document.title = `StaffPulse | ${activeTitle}`;
+
+    for (const link of navigationLinks) {
+      if (link.dataset.page === currentPage) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    }
+
+    for (const section of pageSections) {
+      section.hidden = section.dataset.pageSection !== currentPage;
+    }
+  };
+
+  window.addEventListener('hashchange', updateActivePage);
+  updateActivePage();
+  renderStorageStatus(notificationRegion);
 }
 
 function renderStorageStatus(container) {
@@ -27,4 +48,5 @@ function renderStorageStatus(container) {
 
   const storageError = getStorageError();
   container.textContent = storageError ? storageError.message : '';
+  container.hidden = !storageError;
 }
