@@ -223,6 +223,27 @@
                 <p class="section-kicker">Equipe</p>
                 <h3 id="employee-list-title">Colaboradores cadastrados</h3>
               </header>
+              <div class="employee-list-toolbar">
+                <div class="employee-search">
+                  <label class="visually-hidden" for="employee-search">Pesquisar por nome</label>
+                  <input
+                    id="employee-search"
+                    name="employeeSearch"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Pesquisar colaborador por nome"
+                    aria-controls="employee-list-content"
+                  />
+                </div>
+                <button
+                  id="employee-search-clear"
+                  class="button-secondary employee-search-clear"
+                  type="button"
+                  hidden
+                >
+                  Limpar pesquisa
+                </button>
+              </div>
               <div id="employee-list-content" class="employee-list-content" aria-live="polite"></div>
             </section>
           </section>

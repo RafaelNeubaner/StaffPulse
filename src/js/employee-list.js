@@ -1,5 +1,9 @@
 import { getEmployees, subscribeToEmployeeChanges } from './employee-store.js';
 import { startEmployeeEdit } from './employee-form.js';
+import {
+  filterEmployees as filterEmployeesByCriteria,
+  searchByName,
+} from './employee-service.js';
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -11,20 +15,42 @@ const renderedLists = new WeakMap();
 
 export function initializeEmployeeList() {
   const container = document.querySelector('#employee-list-content');
-  if (!container) {
-    throw new Error('A estrutura da listagem de colaboradores está incompleta.');
+  const searchInput = document.querySelector('#employee-search');
+  const clearSearchButton = document.querySelector('#employee-search-clear');
+  if (!container || !searchInput || !clearSearchButton) {
+    throw new Error('A estrutura da pesquisa de colaboradores está incompleta.');
   }
 
+  const activeFilters = {};
   const refreshEmployeeList = (employees = getEmployees()) => {
-    renderEmployeeList(container, employees);
+    const query = searchInput.value;
+    const visibleEmployees = getVisibleEmployees(employees, query, activeFilters);
+    renderEmployeeList(container, visibleEmployees, { query, filters: activeFilters });
+    clearSearchButton.hidden = !query.trim();
   };
+
+  searchInput.addEventListener('input', () => refreshEmployeeList());
+  clearSearchButton.addEventListener('click', () => {
+    searchInput.value = '';
+    refreshEmployeeList();
+    searchInput.focus();
+  });
 
   refreshEmployeeList();
   return subscribeToEmployeeChanges(refreshEmployeeList);
 }
 
-export function renderEmployeeList(container, employees) {
-  const signature = JSON.stringify(
+export function getVisibleEmployees(employees, query = '', filters = {}) {
+  return filterEmployeesByCriteria(searchByName(employees, query), filters);
+}
+
+export function renderEmployeeList(container, employees, { query = '', filters = {} } = {}) {
+  const hasCriteria =
+    Boolean(query.trim()) ||
+    Object.values(filters).some(
+      (value) => value && !['all', 'todos'].includes(String(value).trim().toLowerCase())
+    );
+  const signature = JSON.stringify([
     employees.map(({ id, name, email, department, salary, admissionDate, status }) => ({
       id,
       name,
@@ -33,8 +59,9 @@ export function renderEmployeeList(container, employees) {
       salary,
       admissionDate,
       status,
-    }))
-  );
+    })),
+    hasCriteria,
+  ]);
   if (renderedLists.get(container) === signature) {
     return;
   }
@@ -42,7 +69,9 @@ export function renderEmployeeList(container, employees) {
   if (employees.length === 0) {
     const emptyMessage = document.createElement('p');
     emptyMessage.className = 'employee-list-empty';
-    emptyMessage.textContent = 'Nenhum colaborador cadastrado.';
+    emptyMessage.textContent = hasCriteria
+      ? 'Nenhum colaborador encontrado.'
+      : 'Nenhum colaborador cadastrado.';
     container.replaceChildren(emptyMessage);
     renderedLists.set(container, signature);
     return;

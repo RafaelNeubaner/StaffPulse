@@ -46,6 +46,9 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
 - **Formulário de cadastro (`src/js/employee-form.js`):**
   - Cria colaboradores usando a camada de integração e apresenta mensagens de sucesso ou erros do serviço.
   - Preenche o seletor de departamentos a partir de `ALLOWED_DEPARTMENTS`, sem duplicar as regras de validação do domínio.
+- **Listagem e pesquisa (`src/js/employee-list.js`):**
+  - Apresenta os colaboradores persistidos em uma tabela e pesquisa por nome conforme o usuário digita.
+  - Delega busca e filtros aos serviços de domínio, permitindo compor os critérios sem replicar regras na interface.
 
 ---
 
@@ -53,7 +56,7 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
 
 - **Linguagem & Arquitetura:** JavaScript ES6+ (ES Modules desacoplados do DOM), HTML5 Semântico, CSS3
 - **Testes Unitários:** [Vitest](https://vitest.dev/) (`v5.1.0`)
-- **Cobertura de Código:** `@vitest/coverage-v8` (meta $\ge 80\%$; relatório mais recente: 95,70% statements, 93,56% branches, 94,56% functions e 96,00% lines)
+- **Cobertura de Código:** `@vitest/coverage-v8` (meta $\ge 80\%$; relatório mais recente: 95,63% statements, 93,11% branches, 93,75% functions e 95,92% lines)
 - **Testes End-to-End (Dev 2):** Playwright
 - **Integração Contínua (Dev 2):** GitHub Actions (`ubuntu-latest`, `windows-latest`, `macos-latest`)
 
