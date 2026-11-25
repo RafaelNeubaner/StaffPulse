@@ -243,9 +243,62 @@
                 >
                   Limpar pesquisa
                 </button>
+                <div class="employee-list-filter">
+                  <label for="employee-department-filter">Departamento</label>
+                  <select id="employee-department-filter" name="departmentFilter"></select>
+                </div>
+                <div class="employee-list-filter">
+                  <label for="employee-status-filter">Status</label>
+                  <select id="employee-status-filter" name="statusFilter"></select>
+                </div>
+                <button
+                  id="employee-filters-clear"
+                  class="button-secondary employee-filters-clear"
+                  type="button"
+                  hidden
+                >
+                  Limpar filtros
+                </button>
+                <div class="employee-list-filter">
+                  <label for="employee-sort-field">Ordenar por</label>
+                  <select id="employee-sort-field" name="sortBy">
+                    <option value="name">Nome</option>
+                    <option value="salary">Salário</option>
+                    <option value="admissionDate">Data de admissão</option>
+                  </select>
+                </div>
+                <div class="employee-list-filter">
+                  <label for="employee-sort-order">Ordem</label>
+                  <select id="employee-sort-order" name="sortOrder">
+                    <option value="asc">Crescente</option>
+                    <option value="desc">Decrescente</option>
+                  </select>
+                </div>
               </div>
               <div id="employee-list-content" class="employee-list-content" aria-live="polite"></div>
             </section>
+
+            <dialog
+              id="employee-details-dialog"
+              class="employee-details-dialog"
+              aria-labelledby="employee-details-title"
+            >
+              <header class="employee-details-dialog__header">
+                <div>
+                  <p class="section-kicker">Registro do colaborador</p>
+                  <h3 id="employee-details-title">Detalhes do colaborador</h3>
+                </div>
+                <button
+                  id="employee-details-close"
+                  class="button-secondary"
+                  type="button"
+                  aria-label="Fechar detalhes do colaborador"
+                >
+                  Fechar
+                </button>
+              </header>
+              <dl id="employee-details-content" class="employee-details"></dl>
+            </dialog>
           </section>
         </main>
 

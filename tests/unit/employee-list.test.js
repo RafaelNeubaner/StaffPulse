@@ -8,6 +8,7 @@ import {
   getVisibleEmployees,
   initializeEmployeeList,
 } from '../../src/js/employee-list.js';
+import { ALLOWED_DEPARTMENTS, ALLOWED_STATUSES } from '../../src/js/validators.js';
 
 class ElementStub {
   constructor() {
@@ -32,6 +33,7 @@ class ElementStub {
 
   replaceChildren(...children) {
     this.children = children;
+    this.options = children;
   }
 
   setAttribute(name, value) {
@@ -40,6 +42,14 @@ class ElementStub {
 
   getAttribute(name) {
     return this.attributes[name] ?? null;
+  }
+
+  showModal() {
+    this.open = true;
+  }
+
+  close() {
+    this.open = false;
   }
 }
 
@@ -54,46 +64,61 @@ function findElements(element, tagName) {
   ];
 }
 
+function setupListElements() {
+  const elements = {
+    '#employee-list-content': new ElementStub(),
+    '#employee-search': new ElementStub(),
+    '#employee-search-clear': new ElementStub(),
+    '#employee-department-filter': new ElementStub(),
+    '#employee-status-filter': new ElementStub(),
+    '#employee-filters-clear': new ElementStub(),
+    '#employee-sort-field': new ElementStub(),
+    '#employee-sort-order': new ElementStub(),
+    '#employee-details-dialog': new ElementStub(),
+    '#employee-details-content': new ElementStub(),
+    '#employee-details-close': new ElementStub(),
+  };
+  elements['#employee-search'].value = '';
+  elements['#employee-department-filter'].value = '';
+  elements['#employee-status-filter'].value = '';
+  elements['#employee-sort-field'].value = 'name';
+  elements['#employee-sort-field'].options = ['name', 'salary', 'admissionDate'].map((value) => ({
+    value,
+  }));
+  elements['#employee-sort-order'].value = 'asc';
+  return elements;
+}
+
+function stubListDocument(elements) {
+  vi.stubGlobal('document', {
+    createElement: (tagName) => Object.assign(new ElementStub(), { tagName }),
+    querySelector: (selector) => elements[selector] ?? null,
+  });
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
 describe('Employee list', () => {
   it('should show the empty state when no employees are registered', () => {
-    const container = new ElementStub();
-    const searchInput = new ElementStub();
-    searchInput.value = '';
-    const clearButton = new ElementStub();
-    const elements = {
-      '#employee-list-content': container,
-      '#employee-search': searchInput,
-      '#employee-search-clear': clearButton,
-    };
-    vi.stubGlobal('document', {
-      createElement: (tagName) => Object.assign(new ElementStub(), { tagName }),
-      querySelector: (selector) => elements[selector] ?? null,
-    });
+    const elements = setupListElements();
+    stubListDocument(elements);
 
     const unsubscribe = initializeEmployeeList();
 
-    expect(getRenderedText(container)).toContain('Nenhum colaborador cadastrado.');
+    expect(getRenderedText(elements['#employee-list-content'])).toContain(
+      'Nenhum colaborador cadastrado.'
+    );
     unsubscribe();
   });
 
   it('should search dynamically, compose domain filters, and restore all rows when cleared', () => {
-    const container = new ElementStub();
-    const searchInput = new ElementStub();
-    searchInput.value = '';
-    const clearButton = new ElementStub();
-    const elements = {
-      '#employee-list-content': container,
-      '#employee-search': searchInput,
-      '#employee-search-clear': clearButton,
-    };
-    vi.stubGlobal('document', {
-      createElement: (tagName) => Object.assign(new ElementStub(), { tagName }),
-      querySelector: (selector) => elements[selector] ?? null,
-    });
+    const elements = setupListElements();
+    const container = elements['#employee-list-content'];
+    const searchInput = elements['#employee-search'];
+    const clearButton = elements['#employee-search-clear'];
+    stubListDocument(elements);
 
     const firstId = `employee-search-carlos-${Date.now()}`;
     const secondId = `employee-search-amanda-${Date.now()}`;
@@ -147,28 +172,114 @@ describe('Employee list', () => {
     }
   });
 
+  it('should combine search and filters and sort results with the service contract', () => {
+    const elements = setupListElements();
+    const container = elements['#employee-list-content'];
+    const searchInput = elements['#employee-search'];
+    const departmentFilter = elements['#employee-department-filter'];
+    const statusFilter = elements['#employee-status-filter'];
+    const clearFiltersButton = elements['#employee-filters-clear'];
+    const sortField = elements['#employee-sort-field'];
+    const sortOrder = elements['#employee-sort-order'];
+    stubListDocument(elements);
+
+    expect(ALLOWED_DEPARTMENTS).toContain('TI');
+    expect(ALLOWED_STATUSES).toEqual(['ativo', 'inativo']);
+    const records = [
+      {
+        id: `filter-sort-1-${Date.now()}`,
+        name: 'Ana Costa',
+        email: `ana-costa-${Date.now()}@staffpulse.com`,
+        salary: 4800,
+        admissionDate: '2020-03-10',
+        department: 'TI',
+        status: 'ativo',
+      },
+      {
+        id: `filter-sort-2-${Date.now()}`,
+        name: 'Ana Lima',
+        email: `ana-lima-${Date.now()}@staffpulse.com`,
+        salary: 6200,
+        admissionDate: '2022-03-10',
+        department: 'TI',
+        status: 'inativo',
+      },
+      {
+        id: `filter-sort-3-${Date.now()}`,
+        name: 'Ana Souza',
+        email: `ana-souza-${Date.now()}@staffpulse.com`,
+        salary: 5500,
+        admissionDate: '2021-03-10',
+        department: 'RH',
+        status: 'ativo',
+      },
+    ];
+    for (const employee of records) addEmployee(employee);
+    const unsubscribe = initializeEmployeeList();
+
+    try {
+      expect(elements['#employee-department-filter'].options.map(({ value }) => value)).toEqual([
+        '',
+        ...ALLOWED_DEPARTMENTS,
+      ]);
+      expect(elements['#employee-status-filter'].options.map(({ value }) => value)).toEqual([
+        '',
+        ...ALLOWED_STATUSES,
+      ]);
+      expect(elements['#employee-sort-field'].options.map(({ value }) => value)).toEqual([
+        'name',
+        'salary',
+        'admissionDate',
+      ]);
+
+      searchInput.value = 'aNa';
+      searchInput.listeners.get('input')();
+      departmentFilter.value = 'TI';
+      departmentFilter.listeners.get('change')();
+      statusFilter.value = 'inativo';
+      statusFilter.listeners.get('change')();
+      expect(clearFiltersButton.hidden).toBe(false);
+      expect(getRenderedText(container)).toContain('Ana Lima');
+      expect(getRenderedText(container)).not.toContain('Ana Costa');
+      expect(getRenderedText(container)).not.toContain('Ana Souza');
+
+      clearFiltersButton.listeners.get('click')();
+      expect(departmentFilter.value).toBe('');
+      expect(statusFilter.value).toBe('');
+      expect(clearFiltersButton.hidden).toBe(true);
+      expect(getRenderedText(container)).toContain('Ana Costa');
+      expect(getRenderedText(container)).toContain('Ana Lima');
+      expect(getRenderedText(container)).toContain('Ana Souza');
+
+      sortField.value = 'salary';
+      sortField.listeners.get('change')();
+      sortOrder.value = 'desc';
+      sortOrder.listeners.get('change')();
+      expect(findElements(container, 'tbody')[0].children.map((row) => row.children[0].textContent))
+        .toEqual(['Ana Lima', 'Ana Souza', 'Ana Costa']);
+    } finally {
+      unsubscribe();
+      for (const { id } of records) {
+        if (getEmployees().some((employee) => employee.id === id)) {
+          removeEmployee(id);
+        }
+      }
+    }
+  });
+
   it('should render existing employees and update immediately after store changes', () => {
-    const container = new ElementStub();
-    const searchInput = new ElementStub();
-    searchInput.value = '';
-    const clearButton = new ElementStub();
-    const elements = {
-      '#employee-list-content': container,
-      '#employee-search': searchInput,
-      '#employee-search-clear': clearButton,
-    };
-    vi.stubGlobal('document', {
-      createElement: (tagName) => Object.assign(new ElementStub(), { tagName }),
-      querySelector: (selector) => elements[selector] ?? null,
-    });
+    const elements = setupListElements();
+    const container = elements['#employee-list-content'];
+    stubListDocument(elements);
 
     const existingId = `employee-list-existing-${Date.now()}`;
     const employeeId = `employee-list-${Date.now()}`;
     const email = `${employeeId}@staffpulse.com`;
+    const existingEmail = `${existingId}@staffpulse.com`;
     addEmployee({
       id: existingId,
       name: 'Colaborador existente',
-      email: `${existingId}@staffpulse.com`,
+      email: existingEmail,
       salary: 5200,
       admissionDate: '2021-06-15',
       department: 'RH',
@@ -212,6 +323,28 @@ describe('Employee list', () => {
       expect(editButton.type).toBe('button');
       expect(editButton.getAttribute('aria-label')).toBe('Editar Colaborador existente');
 
+      const originalEmployee = getEmployees().find(({ id }) => id === existingId);
+      const detailsButton = findElements(container, 'button').find(
+        ({ textContent }) => textContent === 'Detalhes'
+      );
+      detailsButton.listeners.get('click')();
+      expect(elements['#employee-details-dialog'].open).toBe(true);
+      expect(getRenderedText(elements['#employee-details-content'])).toContain(existingId);
+      expect(getRenderedText(elements['#employee-details-content'])).toContain(
+        'Colaborador existente'
+      );
+      expect(getRenderedText(elements['#employee-details-content'])).toContain(
+        existingEmail
+      );
+      expect(getRenderedText(elements['#employee-details-content'])).toContain('RH');
+      expect(getRenderedText(elements['#employee-details-content'])).toContain('5.200,00');
+      expect(getRenderedText(elements['#employee-details-content'])).toContain('15/06/2021');
+      expect(getRenderedText(elements['#employee-details-content'])).toContain('Analista');
+      expect(getRenderedText(elements['#employee-details-content'])).toContain('ativo');
+      expect(getEmployees().find(({ id }) => id === existingId)).toBe(originalEmployee);
+      elements['#employee-details-close'].listeners.get('click')();
+      expect(elements['#employee-details-dialog'].open).toBe(false);
+
       removeEmployee(employeeId);
       expect(getRenderedText(container)).not.toContain('Joana Silva');
       expect(getRenderedText(container)).toContain('Colaborador existente');
@@ -232,7 +365,7 @@ describe('Employee list', () => {
     });
 
     expect(() => initializeEmployeeList()).toThrow(
-      'A estrutura da pesquisa de colaboradores está incompleta.'
+      'A estrutura de listagem e controles de colaboradores está incompleta.'
     );
   });
 });

@@ -3,7 +3,9 @@ import { startEmployeeEdit } from './employee-form.js';
 import {
   filterEmployees as filterEmployeesByCriteria,
   searchByName,
+  sortEmployees,
 } from './employee-service.js';
+import { ALLOWED_DEPARTMENTS, ALLOWED_STATUSES } from './validators.js';
 
 const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -17,16 +19,51 @@ export function initializeEmployeeList() {
   const container = document.querySelector('#employee-list-content');
   const searchInput = document.querySelector('#employee-search');
   const clearSearchButton = document.querySelector('#employee-search-clear');
-  if (!container || !searchInput || !clearSearchButton) {
-    throw new Error('A estrutura da pesquisa de colaboradores está incompleta.');
+  const departmentFilter = document.querySelector('#employee-department-filter');
+  const statusFilter = document.querySelector('#employee-status-filter');
+  const clearFiltersButton = document.querySelector('#employee-filters-clear');
+  const sortField = document.querySelector('#employee-sort-field');
+  const sortOrder = document.querySelector('#employee-sort-order');
+  const detailsDialog = document.querySelector('#employee-details-dialog');
+  const detailsContent = document.querySelector('#employee-details-content');
+  const closeDetailsButton = document.querySelector('#employee-details-close');
+  if (
+    !container ||
+    !searchInput ||
+    !clearSearchButton ||
+    !departmentFilter ||
+    !statusFilter ||
+    !clearFiltersButton ||
+    !sortField ||
+    !sortOrder ||
+    !detailsDialog ||
+    !detailsContent ||
+    !closeDetailsButton
+  ) {
+    throw new Error('A estrutura de listagem e controles de colaboradores está incompleta.');
   }
 
-  const activeFilters = {};
+  populateFilter(departmentFilter, 'Todos os departamentos', ALLOWED_DEPARTMENTS);
+  populateFilter(statusFilter, 'Todos os status', ALLOWED_STATUSES);
+
+  const getActiveFilters = () => ({
+    department: departmentFilter.value,
+    status: statusFilter.value,
+  });
+
   const refreshEmployeeList = (employees = getEmployees()) => {
     const query = searchInput.value;
-    const visibleEmployees = getVisibleEmployees(employees, query, activeFilters);
-    renderEmployeeList(container, visibleEmployees, { query, filters: activeFilters });
+    const filters = getActiveFilters();
+    const visibleEmployees = getVisibleEmployees(
+      employees,
+      query,
+      filters,
+      sortField.value,
+      sortOrder.value
+    );
+    renderEmployeeList(container, visibleEmployees, { query, filters });
     clearSearchButton.hidden = !query.trim();
+    clearFiltersButton.hidden = !filters.department && !filters.status;
   };
 
   searchInput.addEventListener('input', () => refreshEmployeeList());
@@ -35,13 +72,32 @@ export function initializeEmployeeList() {
     refreshEmployeeList();
     searchInput.focus();
   });
+  departmentFilter.addEventListener('change', () => refreshEmployeeList());
+  statusFilter.addEventListener('change', () => refreshEmployeeList());
+  clearFiltersButton.addEventListener('click', () => {
+    departmentFilter.value = '';
+    statusFilter.value = '';
+    refreshEmployeeList();
+    departmentFilter.focus();
+  });
+  sortField.addEventListener('change', () => refreshEmployeeList());
+  sortOrder.addEventListener('change', () => refreshEmployeeList());
+  closeDetailsButton.addEventListener('click', () => detailsDialog.close());
 
   refreshEmployeeList();
   return subscribeToEmployeeChanges(refreshEmployeeList);
 }
 
-export function getVisibleEmployees(employees, query = '', filters = {}) {
-  return filterEmployeesByCriteria(searchByName(employees, query), filters);
+export function getVisibleEmployees(
+  employees,
+  query = '',
+  filters = {},
+  sortBy = 'name',
+  order = 'asc'
+) {
+  const matchingEmployees = searchByName(employees, query);
+  const filteredEmployees = filterEmployeesByCriteria(matchingEmployees, filters);
+  return sortEmployees(filteredEmployees, sortBy, order);
 }
 
 export function renderEmployeeList(container, employees, { query = '', filters = {} } = {}) {
@@ -128,13 +184,17 @@ export function renderEmployeeList(container, employees, { query = '', filters =
     row.append(statusCell);
 
     const actionCell = document.createElement('td');
-    const editButton = document.createElement('button');
-    editButton.type = 'button';
-    editButton.className = 'button-secondary employee-table__action';
-    editButton.textContent = 'Editar';
-    editButton.setAttribute('aria-label', `Editar ${employee.name}`);
-    editButton.addEventListener('click', () => startEmployeeEdit(employee.id));
-    actionCell.append(editButton);
+    const detailsButton = createActionButton(
+      'Detalhes',
+      `Ver detalhes de ${employee.name}`,
+      () => showEmployeeDetails(employee.id)
+    );
+    const editButton = createActionButton(
+      'Editar',
+      `Editar ${employee.name}`,
+      () => startEmployeeEdit(employee.id)
+    );
+    actionCell.append(detailsButton, editButton);
     row.append(actionCell);
 
     body.append(row);
@@ -144,6 +204,71 @@ export function renderEmployeeList(container, employees, { query = '', filters =
   wrapper.append(table);
   container.replaceChildren(wrapper);
   renderedLists.set(container, signature);
+}
+
+function showEmployeeDetails(employeeId) {
+  const dialog = document.querySelector('#employee-details-dialog');
+  const content = document.querySelector('#employee-details-content');
+  const employee = getEmployees().find(({ id }) => id === employeeId);
+
+  if (!dialog || !content) {
+    throw new Error('A estrutura dos detalhes do colaborador está incompleta.');
+  }
+  if (!employee) {
+    throw new Error('Colaborador não encontrado.');
+  }
+
+  renderEmployeeDetails(content, employee);
+  dialog.showModal();
+}
+
+export function renderEmployeeDetails(container, employee) {
+  const details = [
+    ['ID', employee.id],
+    ['Nome', employee.name],
+    ['E-mail', employee.email],
+    ['Departamento', employee.department],
+    ['Salário', currencyFormatter.format(employee.salary)],
+    ['Data de admissão', dateFormatter.format(new Date(`${employee.admissionDate}T00:00:00`))],
+    ['Cargo', employee.role],
+    ['Status', employee.status],
+  ];
+
+  const items = details.map(([label, value]) => {
+    const item = document.createElement('div');
+    item.className = 'employee-details__item';
+
+    const term = document.createElement('dt');
+    term.textContent = label;
+
+    const description = document.createElement('dd');
+    description.textContent = value;
+
+    item.append(term, description);
+    return item;
+  });
+
+  container.replaceChildren(...items);
+}
+
+function createActionButton(label, accessibleLabel, onClick) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'button-secondary employee-table__action';
+  button.textContent = label;
+  button.setAttribute('aria-label', accessibleLabel);
+  button.addEventListener('click', onClick);
+  return button;
+}
+
+function populateFilter(select, placeholder, values) {
+  const options = [placeholder, ...values].map((label, index) => {
+    const option = document.createElement('option');
+    option.value = index === 0 ? '' : label;
+    option.textContent = label;
+    return option;
+  });
+  select.replaceChildren(...options);
 }
 
 function appendTextCell(row, text, className = '') {
