@@ -41,8 +41,8 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
   - Exibe `StorageError` para dados inacessíveis ou corrompidos e `PersistenceError` para falhas de gravação.
 - **Dashboard (`src/js/dashboard.js`):**
   - Apresenta colaboradores ativos e total cadastrado, folha salarial e salário médio.
-  - Exibe a distribuição por cargo usando os resultados de `calculatePayrollStats`.
-  - Atualiza os indicadores quando a store notifica alterações nos colaboradores.
+  - Exibe distribuições visuais por departamento e cargo; cargos vêm de `calculatePayrollStats`, departamentos dos registros validados.
+  - Atualiza os indicadores e distribuições quando a store notifica alterações nos colaboradores.
 
 ---
 

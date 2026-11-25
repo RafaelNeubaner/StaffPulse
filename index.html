@@ -84,13 +84,22 @@
               </article>
             </div>
 
-            <section class="role-summary" aria-labelledby="role-summary-title">
-              <div>
-                <p class="section-kicker">Composição da equipe</p>
-                <h3 id="role-summary-title">Colaboradores por cargo</h3>
-              </div>
-              <p id="role-counts" class="role-counts">Nenhum colaborador cadastrado.</p>
-            </section>
+            <div class="distribution-grid">
+              <section class="distribution-card" aria-labelledby="department-distribution-title">
+                <header class="distribution-card__header">
+                  <p class="section-kicker">Composição da equipe</p>
+                  <h3 id="department-distribution-title">Por departamento</h3>
+                </header>
+                <div id="department-distribution" class="distribution-content"></div>
+              </section>
+              <section class="distribution-card" aria-labelledby="role-distribution-title">
+                <header class="distribution-card__header">
+                  <p class="section-kicker">Perfil profissional</p>
+                  <h3 id="role-distribution-title">Por cargo</h3>
+                </header>
+                <div id="role-distribution" class="distribution-content"></div>
+              </section>
+            </div>
           </section>
 
           <section
