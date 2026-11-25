@@ -106,10 +106,12 @@ Ferramentas de IA generativa foram empregadas como apoio técnico nas seguintes 
 
 5. **Instalar o Chromium do Playwright e executar os testes E2E:**
    ```bash
-   npx playwright install chromium
+   npm run test:e2e:install
    npm run test:e2e
    ```
    O Playwright inicia e encerra o servidor local automaticamente.
+   A suíte cobre navegação, cadastro válido e inválido, pesquisa e filtros, edição e inativação.
+   Cada cenário usa um contexto de navegador isolado, incluindo seu próprio `localStorage`.
 
 ## 6. Integração contínua
 
