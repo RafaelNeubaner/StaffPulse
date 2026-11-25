@@ -66,7 +66,13 @@ Ferramentas de IA generativa foram empregadas como apoio técnico nas seguintes 
    npm install
    ```
 
-2. **Executar os testes unitários:**
+2. **Iniciar a estrutura inicial da interface:**
+   ```bash
+   npm run serve
+   ```
+   Acesse `http://127.0.0.1:4173` no navegador.
+
+3. **Executar os testes unitários:**
    ```bash
    npm test
    ```
