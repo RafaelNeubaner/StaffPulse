@@ -275,8 +275,47 @@
                   </select>
                 </div>
               </div>
+              <div
+                id="employee-list-feedback"
+                class="form-feedback employee-list-feedback"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                hidden
+              ></div>
               <div id="employee-list-content" class="employee-list-content" aria-live="polite"></div>
             </section>
+
+            <dialog
+              id="employee-operation-dialog"
+              class="employee-confirm-dialog"
+              aria-labelledby="employee-operation-title"
+              aria-describedby="employee-operation-description"
+            >
+              <header class="employee-details-dialog__header">
+                <div>
+                  <p class="section-kicker">Confirmação necessária</p>
+                  <h3 id="employee-operation-title"></h3>
+                </div>
+              </header>
+              <p id="employee-operation-description" class="employee-confirm-dialog__description"></p>
+              <div class="employee-confirm-dialog__actions">
+                <button
+                  id="employee-operation-cancel"
+                  class="button-secondary"
+                  type="button"
+                >
+                  Cancelar
+                </button>
+                <button
+                  id="employee-operation-confirm"
+                  class="button-primary"
+                  type="button"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </dialog>
 
             <dialog
               id="employee-details-dialog"

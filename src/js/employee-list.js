@@ -1,4 +1,8 @@
-import { getEmployees, subscribeToEmployeeChanges } from './employee-store.js';
+import {
+  getEmployees,
+  removeEmployee,
+  subscribeToEmployeeChanges,
+} from './employee-store.js';
 import { startEmployeeEdit } from './employee-form.js';
 import {
   filterEmployees as filterEmployeesByCriteria,
@@ -27,6 +31,12 @@ export function initializeEmployeeList() {
   const detailsDialog = document.querySelector('#employee-details-dialog');
   const detailsContent = document.querySelector('#employee-details-content');
   const closeDetailsButton = document.querySelector('#employee-details-close');
+  const listFeedback = document.querySelector('#employee-list-feedback');
+  const operationDialog = document.querySelector('#employee-operation-dialog');
+  const operationTitle = document.querySelector('#employee-operation-title');
+  const operationDescription = document.querySelector('#employee-operation-description');
+  const cancelOperationButton = document.querySelector('#employee-operation-cancel');
+  const confirmOperationButton = document.querySelector('#employee-operation-confirm');
   if (
     !container ||
     !searchInput ||
@@ -38,13 +48,22 @@ export function initializeEmployeeList() {
     !sortOrder ||
     !detailsDialog ||
     !detailsContent ||
-    !closeDetailsButton
+    !closeDetailsButton ||
+    !listFeedback ||
+    !operationDialog ||
+    !operationTitle ||
+    !operationDescription ||
+    !cancelOperationButton ||
+    !confirmOperationButton
   ) {
     throw new Error('A estrutura de listagem e controles de colaboradores está incompleta.');
   }
 
   populateFilter(departmentFilter, 'Todos os departamentos', ALLOWED_DEPARTMENTS);
   populateFilter(statusFilter, 'Todos os status', ALLOWED_STATUSES);
+
+  let pendingOperation = null;
+  let operationInProgress = false;
 
   const getActiveFilters = () => ({
     department: departmentFilter.value,
@@ -61,9 +80,72 @@ export function initializeEmployeeList() {
       sortField.value,
       sortOrder.value
     );
-    renderEmployeeList(container, visibleEmployees, { query, filters });
+    renderEmployeeList(container, visibleEmployees, {
+      filters,
+      onRequestRemoval: openRemovalConfirmation,
+      query,
+    });
     clearSearchButton.hidden = !query.trim();
     clearFiltersButton.hidden = !filters.department && !filters.status;
+  };
+
+  function openRemovalConfirmation(employeeId, logical) {
+    const employee = getEmployees().find(({ id }) => id === employeeId);
+    if (!employee) {
+      throw new Error('Colaborador não encontrado.');
+    }
+
+    pendingOperation = { employeeId, logical, employeeName: employee.name };
+    operationTitle.textContent = logical ? 'Inativar colaborador' : 'Excluir colaborador';
+    operationDescription.textContent = logical
+      ? `Confirma a inativação de ${employee.name}? O registro será mantido com status inativo.`
+      : `Confirma a exclusão permanente de ${employee.name}? Esta ação não poderá ser desfeita.`;
+    confirmOperationButton.textContent = logical
+      ? 'Inativar colaborador'
+      : 'Excluir permanentemente';
+    confirmOperationButton.dataset.operation = logical ? 'inactivate' : 'delete';
+    operationDialog.showModal();
+  }
+
+  const closeOperationDialog = () => {
+    pendingOperation = null;
+    operationDialog.close();
+  };
+
+  operationDialog.addEventListener('close', () => {
+    pendingOperation = null;
+  });
+
+  const executePendingOperation = () => {
+    if (!pendingOperation || operationInProgress) {
+      return;
+    }
+
+    const { employeeId, employeeName, logical } = pendingOperation;
+    operationInProgress = true;
+    confirmOperationButton.disabled = true;
+
+    try {
+      removeEmployee(employeeId, { logical });
+      listFeedback.textContent = logical
+        ? `${employeeName} foi inativado com sucesso.`
+        : `${employeeName} foi excluído permanentemente.`;
+      listFeedback.dataset.state = 'success';
+      listFeedback.hidden = false;
+      closeOperationDialog();
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        throw error;
+      }
+
+      listFeedback.textContent = error.message;
+      listFeedback.dataset.state = 'error';
+      listFeedback.hidden = false;
+      closeOperationDialog();
+    } finally {
+      operationInProgress = false;
+      confirmOperationButton.disabled = false;
+    }
   };
 
   searchInput.addEventListener('input', () => refreshEmployeeList());
@@ -83,6 +165,8 @@ export function initializeEmployeeList() {
   sortField.addEventListener('change', () => refreshEmployeeList());
   sortOrder.addEventListener('change', () => refreshEmployeeList());
   closeDetailsButton.addEventListener('click', () => detailsDialog.close());
+  cancelOperationButton.addEventListener('click', closeOperationDialog);
+  confirmOperationButton.addEventListener('click', executePendingOperation);
 
   refreshEmployeeList();
   return subscribeToEmployeeChanges(refreshEmployeeList);
@@ -100,7 +184,11 @@ export function getVisibleEmployees(
   return sortEmployees(filteredEmployees, sortBy, order);
 }
 
-export function renderEmployeeList(container, employees, { query = '', filters = {} } = {}) {
+export function renderEmployeeList(
+  container,
+  employees,
+  { query = '', filters = {}, onRequestRemoval } = {}
+) {
   const hasCriteria =
     Boolean(query.trim()) ||
     Object.values(filters).some(
@@ -166,6 +254,10 @@ export function renderEmployeeList(container, employees, { query = '', filters =
 
   const body = document.createElement('tbody');
   for (const employee of employees) {
+    if (typeof onRequestRemoval !== 'function') {
+      throw new Error('A ação de remoção do colaborador não está configurada.');
+    }
+
     const row = document.createElement('tr');
     appendTextCell(row, employee.name, 'employee-table__name');
     appendTextCell(row, employee.email);
@@ -195,6 +287,22 @@ export function renderEmployeeList(container, employees, { query = '', filters =
       () => startEmployeeEdit(employee.id)
     );
     actionCell.append(detailsButton, editButton);
+    if (employee.status === 'ativo') {
+      actionCell.append(
+        createActionButton(
+          'Inativar',
+          `Inativar ${employee.name}`,
+          () => onRequestRemoval(employee.id, true)
+        )
+      );
+    }
+    actionCell.append(
+      createActionButton(
+        'Excluir',
+        `Excluir permanentemente ${employee.name}`,
+        () => onRequestRemoval(employee.id, false)
+      )
+    );
     row.append(actionCell);
 
     body.append(row);

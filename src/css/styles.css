@@ -757,6 +757,10 @@ a:focus-visible {
   line-height: 1.5;
 }
 
+.employee-list-feedback {
+  margin-bottom: var(--space-4);
+}
+
 .employee-table-wrapper {
   overflow-x: auto;
   border: 1px solid var(--color-gray-200);
@@ -849,7 +853,18 @@ a:focus-visible {
   box-shadow: var(--shadow-lg);
 }
 
-.employee-details-dialog::backdrop {
+.employee-confirm-dialog {
+  width: min(520px, calc(100vw - 32px));
+  padding: var(--space-6);
+  color: var(--color-gray-800);
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.employee-details-dialog::backdrop,
+.employee-confirm-dialog::backdrop {
   background: rgb(12 27 43 / 52%);
   backdrop-filter: blur(2px);
 }
@@ -866,6 +881,27 @@ a:focus-visible {
   margin: 0;
   color: var(--color-navy-950);
   font-size: 1.2rem;
+}
+
+.employee-confirm-dialog__description {
+  margin: 0 0 var(--space-6);
+  color: var(--color-gray-700);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.employee-confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+#employee-operation-confirm[data-operation="delete"] {
+  background: var(--color-danger-700);
+}
+
+#employee-operation-confirm[data-operation="delete"]:hover {
+  background: #7e3333;
 }
 
 .employee-details {
@@ -992,6 +1028,18 @@ a:focus-visible {
 
   .employee-details-dialog {
     padding: var(--space-4);
+  }
+
+  .employee-confirm-dialog {
+    padding: var(--space-4);
+  }
+
+  .employee-confirm-dialog__actions {
+    flex-direction: column-reverse;
+  }
+
+  .employee-confirm-dialog__actions button {
+    width: 100%;
   }
 
   .employee-details {

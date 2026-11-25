@@ -50,6 +50,7 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
   - Apresenta os colaboradores persistidos em uma tabela e pesquisa por nome conforme o usuário digita.
   - Combina pesquisa por nome com filtros de departamento/status e oferece ordenação por nome, salário ou data de admissão usando os serviços de domínio.
   - Exibe detalhes do registro em um diálogo acessível, sem alterar os dados.
+  - Permite inativar ou excluir permanentemente após confirmação explícita, atualizando a lista e o Dashboard.
 
 ---
 
@@ -57,7 +58,7 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
 
 - **Linguagem & Arquitetura:** JavaScript ES6+ (ES Modules desacoplados do DOM), HTML5 Semântico, CSS3
 - **Testes Unitários:** [Vitest](https://vitest.dev/) (`v5.1.0`)
-- **Cobertura de Código:** `@vitest/coverage-v8` (meta $\ge 80\%$; relatório mais recente: 96,08% statements, 94,00% branches, 95,49% functions e 96,14% lines)
+- **Cobertura de Código:** `@vitest/coverage-v8` (meta $\ge 80\%$; relatório mais recente: 95,93% statements, 93,55% branches, 95,76% functions e 95,97% lines)
 - **Testes End-to-End (Dev 2):** Playwright
 - **Integração Contínua (Dev 2):** GitHub Actions (`ubuntu-latest`, `windows-latest`, `macos-latest`)
 

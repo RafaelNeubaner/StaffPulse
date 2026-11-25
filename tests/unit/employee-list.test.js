@@ -5,6 +5,7 @@ import {
   getEmployees,
   removeEmployee,
 } from '../../src/js/employee-store.js';
+import * as employeeStore from '../../src/js/employee-store.js';
 import {
   getVisibleEmployees,
   initializeEmployeeList,
@@ -51,6 +52,7 @@ class ElementStub {
 
   close() {
     this.open = false;
+    this.listeners.get('close')?.();
   }
 }
 
@@ -78,6 +80,12 @@ function setupListElements() {
     '#employee-details-dialog': new ElementStub(),
     '#employee-details-content': new ElementStub(),
     '#employee-details-close': new ElementStub(),
+    '#employee-list-feedback': new ElementStub(),
+    '#employee-operation-dialog': new ElementStub(),
+    '#employee-operation-title': new ElementStub(),
+    '#employee-operation-description': new ElementStub(),
+    '#employee-operation-cancel': new ElementStub(),
+    '#employee-operation-confirm': new ElementStub(),
   };
   elements['#employee-search'].value = '';
   elements['#employee-department-filter'].value = '';
@@ -87,6 +95,8 @@ function setupListElements() {
     value,
   }));
   elements['#employee-sort-order'].value = 'asc';
+  elements['#employee-list-feedback'].hidden = true;
+  elements['#employee-operation-confirm'].disabled = false;
   return elements;
 }
 
@@ -98,6 +108,7 @@ function stubListDocument(elements) {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
@@ -308,6 +319,114 @@ describe('Employee list', () => {
       expect(getRenderedText(container)).toContain('Paula Silva');
       expect(getRenderedText(container)).toContain('7.200,00');
     } finally {
+      unsubscribe();
+      if (getEmployees().some(({ id }) => id === employeeId)) {
+        removeEmployee(employeeId);
+      }
+    }
+  });
+
+  it('should require confirmation before deactivating or permanently deleting an employee', () => {
+    const elements = setupListElements();
+    const container = elements['#employee-list-content'];
+    const operationDialog = elements['#employee-operation-dialog'];
+    const operationDescription = elements['#employee-operation-description'];
+    const confirmButton = elements['#employee-operation-confirm'];
+    const cancelButton = elements['#employee-operation-cancel'];
+    const feedback = elements['#employee-list-feedback'];
+    stubListDocument(elements);
+
+    const employeeId = `employee-removal-${Date.now()}`;
+    addEmployee({
+      id: employeeId,
+      name: 'Rita Gomes',
+      email: `${employeeId}@staffpulse.com`,
+      salary: 5200,
+      admissionDate: '2021-06-15',
+      department: 'RH',
+      status: 'ativo',
+    });
+    const unsubscribe = initializeEmployeeList();
+
+    const findAction = (label) =>
+      findElements(container, 'button').find(
+        (button) => button.getAttribute('aria-label') === label
+      );
+
+    try {
+      findAction('Inativar Rita Gomes').listeners.get('click')();
+      expect(operationDialog.open).toBe(true);
+      expect(operationDescription.textContent).toContain('status inativo');
+      expect(confirmButton.dataset.operation).toBe('inactivate');
+      expect(getEmployees().find(({ id }) => id === employeeId).status).toBe('ativo');
+
+      cancelButton.listeners.get('click')();
+      expect(operationDialog.open).toBe(false);
+      expect(getEmployees().find(({ id }) => id === employeeId).status).toBe('ativo');
+      expect(feedback.hidden).toBe(true);
+
+      findAction('Inativar Rita Gomes').listeners.get('click')();
+      confirmButton.listeners.get('click')();
+      expect(getEmployees().find(({ id }) => id === employeeId).status).toBe('inativo');
+      expect(getRenderedText(container)).toContain('inativo');
+      expect(findAction('Inativar Rita Gomes')).toBeUndefined();
+      expect(feedback.textContent).toBe('Rita Gomes foi inativado com sucesso.');
+      expect(feedback.dataset.state).toBe('success');
+
+      findAction('Excluir permanentemente Rita Gomes').listeners.get('click')();
+      operationDialog.close();
+      confirmButton.listeners.get('click')();
+      expect(getEmployees().some(({ id }) => id === employeeId)).toBe(true);
+
+      findAction('Excluir permanentemente Rita Gomes').listeners.get('click')();
+      expect(operationDescription.textContent).toContain('exclusão permanente');
+      expect(operationDescription.textContent).toContain('não poderá ser desfeita');
+      expect(getEmployees().some(({ id }) => id === employeeId)).toBe(true);
+
+      confirmButton.listeners.get('click')();
+      expect(getEmployees().some(({ id }) => id === employeeId)).toBe(false);
+      expect(getRenderedText(container)).toContain('Nenhum colaborador cadastrado.');
+      expect(feedback.textContent).toBe('Rita Gomes foi excluído permanentemente.');
+    } finally {
+      unsubscribe();
+      if (getEmployees().some(({ id }) => id === employeeId)) {
+        removeEmployee(employeeId);
+      }
+    }
+  });
+
+  it('should show removal service errors instead of success feedback', () => {
+    const elements = setupListElements();
+    const container = elements['#employee-list-content'];
+    const confirmButton = elements['#employee-operation-confirm'];
+    const feedback = elements['#employee-list-feedback'];
+    stubListDocument(elements);
+
+    const employeeId = `employee-removal-error-${Date.now()}`;
+    addEmployee({
+      id: employeeId,
+      name: 'Rita Gomes',
+      email: `${employeeId}@staffpulse.com`,
+      salary: 5200,
+      admissionDate: '2021-06-15',
+      department: 'RH',
+    });
+    const unsubscribe = initializeEmployeeList();
+    vi.spyOn(employeeStore, 'removeEmployee').mockImplementation(() => {
+      throw new Error('Não foi possível persistir os colaboradores.');
+    });
+
+    try {
+      findElements(container, 'button')
+        .find((button) => button.getAttribute('aria-label') === 'Excluir permanentemente Rita Gomes')
+        .listeners.get('click')();
+      confirmButton.listeners.get('click')();
+
+      expect(feedback.textContent).toBe('Não foi possível persistir os colaboradores.');
+      expect(feedback.dataset.state).toBe('error');
+      expect(getEmployees().some(({ id }) => id === employeeId)).toBe(true);
+    } finally {
+      vi.restoreAllMocks();
       unsubscribe();
       if (getEmployees().some(({ id }) => id === employeeId)) {
         removeEmployee(employeeId);
