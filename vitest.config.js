@@ -11,6 +11,7 @@ export default defineConfig({
         'src/js/employee-store.js',
         'src/js/employee-repository.js',
         'src/js/dashboard.js',
+        'src/js/employee-form.js',
       ],
       reporter: ['text', 'html', 'lcov'],
       thresholds: {

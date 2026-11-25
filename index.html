@@ -118,10 +118,78 @@
                 </p>
               </div>
             </header>
-            <div class="content-placeholder">
-              <span class="placeholder-accent" aria-hidden="true"></span>
-              <p>A área de colaboradores está preparada para as próximas etapas.</p>
-            </div>
+            <section class="form-card" aria-labelledby="employee-form-title">
+              <header class="form-card__header">
+                <p class="section-kicker">Cadastro</p>
+                <h3 id="employee-form-title">Novo colaborador</h3>
+                <p>Preencha os dados para adicionar uma pessoa à equipe.</p>
+              </header>
+
+              <form id="employee-form" class="employee-form">
+                <div class="form-field">
+                  <label for="employee-name">Nome</label>
+                  <input
+                    id="employee-name"
+                    name="name"
+                    type="text"
+                    autocomplete="name"
+                    required
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="employee-email">E-mail</label>
+                  <input
+                    id="employee-email"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    required
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="employee-salary">Salário</label>
+                  <input
+                    id="employee-salary"
+                    name="salary"
+                    type="number"
+                    inputmode="decimal"
+                    step="0.01"
+                    required
+                  />
+                </div>
+
+                <div class="form-field">
+                  <label for="employee-admission-date">Data de admissão</label>
+                  <input
+                    id="employee-admission-date"
+                    name="admissionDate"
+                    type="date"
+                    required
+                  />
+                </div>
+
+                <div class="form-field form-field--wide">
+                  <label for="employee-department">Departamento</label>
+                  <select id="employee-department" name="department" required></select>
+                </div>
+
+                <div
+                  id="employee-form-feedback"
+                  class="form-feedback"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  hidden
+                ></div>
+
+                <div class="form-actions">
+                  <button class="button-primary" type="submit">Cadastrar colaborador</button>
+                  <button class="button-secondary" type="reset">Limpar formulário</button>
+                </div>
+              </form>
+            </section>
           </section>
         </main>
 
