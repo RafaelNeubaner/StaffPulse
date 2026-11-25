@@ -65,6 +65,7 @@ describe('Employee store', () => {
     const updated = store.editEmployee('emp-1', { salary: 8200 });
     expect(updated[0].salary).toBe(8200);
     expect(updated[0].id).toBe('emp-1');
+    expect(JSON.parse(storage.getItem(EMPLOYEE_STORAGE_KEY))).toEqual([...updated]);
 
     const inactive = store.removeEmployee('emp-1', { logical: true });
     expect(inactive[0].status).toBe('inativo');

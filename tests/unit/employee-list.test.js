@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   addEmployee,
+  editEmployee,
   getEmployees,
   removeEmployee,
 } from '../../src/js/employee-store.js';
@@ -263,6 +264,53 @@ describe('Employee list', () => {
         if (getEmployees().some((employee) => employee.id === id)) {
           removeEmployee(id);
         }
+      }
+    }
+  });
+
+  it('should retain search and filters while refreshing edited records', () => {
+    const elements = setupListElements();
+    const container = elements['#employee-list-content'];
+    const searchInput = elements['#employee-search'];
+    const departmentFilter = elements['#employee-department-filter'];
+    const statusFilter = elements['#employee-status-filter'];
+    const clearSearchButton = elements['#employee-search-clear'];
+    stubListDocument(elements);
+
+    const employeeId = `employee-edit-list-${Date.now()}`;
+    addEmployee({
+      id: employeeId,
+      name: 'Paula Santos',
+      email: `${employeeId}@staffpulse.com`,
+      salary: 5200,
+      admissionDate: '2021-06-15',
+      department: 'TI',
+      status: 'ativo',
+    });
+    const unsubscribe = initializeEmployeeList();
+
+    try {
+      searchInput.value = 'Paula Santos';
+      searchInput.listeners.get('input')();
+      departmentFilter.value = 'TI';
+      departmentFilter.listeners.get('change')();
+      statusFilter.value = 'ativo';
+      statusFilter.listeners.get('change')();
+
+      editEmployee(employeeId, { name: 'Paula Silva', salary: 7200 });
+
+      expect(searchInput.value).toBe('Paula Santos');
+      expect(departmentFilter.value).toBe('TI');
+      expect(statusFilter.value).toBe('ativo');
+      expect(getRenderedText(container)).toContain('Nenhum colaborador encontrado.');
+
+      clearSearchButton.listeners.get('click')();
+      expect(getRenderedText(container)).toContain('Paula Silva');
+      expect(getRenderedText(container)).toContain('7.200,00');
+    } finally {
+      unsubscribe();
+      if (getEmployees().some(({ id }) => id === employeeId)) {
+        removeEmployee(employeeId);
       }
     }
   });
