@@ -124,6 +124,7 @@ describe('Employee list', () => {
     expect(getRenderedText(elements['#employee-list-content'])).toContain(
       'Nenhum colaborador cadastrado.'
     );
+    expect(elements['#employee-list-content'].children[0].getAttribute('role')).toBe('status');
     unsubscribe();
   });
 

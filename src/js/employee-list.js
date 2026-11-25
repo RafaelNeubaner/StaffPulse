@@ -226,6 +226,7 @@ export function renderEmployeeList(
   if (employees.length === 0) {
     const emptyMessage = document.createElement('p');
     emptyMessage.className = 'employee-list-empty';
+    emptyMessage.setAttribute('role', 'status');
     emptyMessage.textContent = hasCriteria
       ? 'Nenhum colaborador encontrado.'
       : 'Nenhum colaborador cadastrado.';

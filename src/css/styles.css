@@ -10,12 +10,13 @@
   --color-white: #ffffff;
   --color-gray-900: #1c2b36;
   --color-gray-700: #4d6070;
-  --color-gray-500: #738391;
+  --color-gray-500: #5c6c78;
   --color-gray-300: #cbd5dc;
   --color-gray-200: #dde5ea;
   --color-gray-100: #edf2f4;
   --color-danger-700: #9a4141;
   --color-danger-50: #fff4f3;
+  --color-teal-700: #12685f;
 
   --font-family:
     "Avenir Next",
@@ -43,8 +44,6 @@
 
   --shadow-sm: 0 2px 8px rgb(16 32 47 / 7%);
   --shadow-md: 0 14px 36px rgb(16 32 47 / 10%);
-  --shadow-focus: 0 0 0 4px rgb(37 149 138 / 18%);
-
   --transition-fast: 150ms ease;
   --transition-base: 220ms ease;
 
@@ -84,8 +83,26 @@ textarea {
 }
 
 :focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
+  outline: 3px solid var(--color-teal-600);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 20;
+  top: var(--space-3);
+  left: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-white);
+  background: var(--color-navy-950);
+  border-radius: var(--radius-sm);
+  transform: translateY(calc(-100% - var(--space-3)));
+}
+
+.skip-link:focus-visible {
+  color: var(--color-white);
+  outline-color: var(--color-white);
+  transform: translateY(0);
 }
 
 ::selection {
@@ -151,9 +168,14 @@ textarea {
   color: #c9f1e9;
 }
 
+.brand:focus-visible,
+.navigation-link:focus-visible {
+  outline-color: #71c7b9;
+}
+
 .sidebar-label {
   margin: 0 0 var(--space-3) var(--space-3);
-  color: rgb(255 255 255 / 42%);
+  color: #aab8c1;
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.13em;
@@ -207,7 +229,7 @@ textarea {
   gap: var(--space-3);
   margin-top: auto;
   padding: var(--space-4) var(--space-2) 0;
-  color: rgb(255 255 255 / 48%);
+  color: #aab8c1;
   border-top: 1px solid rgb(255 255 255 / 10%);
   font-size: 0.78rem;
 }
@@ -556,7 +578,7 @@ textarea {
 
 .form-field input[aria-invalid="true"]:focus,
 .form-field select[aria-invalid="true"]:focus {
-  box-shadow: 0 0 0 4px rgb(154 65 65 / 14%);
+  outline-color: var(--color-danger-700);
 }
 
 .form-field select:invalid {
@@ -614,6 +636,22 @@ textarea {
   border-color: var(--color-gray-500);
 }
 
+.button-primary:active,
+.button-secondary:active,
+.notification__close:active {
+  transform: scale(0.98);
+}
+
+.button-primary:disabled,
+.button-secondary:disabled {
+  color: var(--color-gray-500);
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-300);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .placeholder-accent {
   flex: 0 0 auto;
   width: 4px;
@@ -669,32 +707,23 @@ textarea {
 }
 
 .notification-region[data-type="success"] {
-  color: var(--color-teal-600);
+  color: var(--color-teal-700);
   background: var(--color-teal-100);
-  border-color: rgb(23 125 114 / 18%);
+  border-color: rgb(23 125 114 / 30%);
+  border-left-color: var(--color-teal-600);
 }
 
 .notification-region[data-type="warning"] {
   color: #765317;
   background: #fff8e9;
-  border-color: rgb(216 154 56 / 35%);
+  border-color: rgb(216 154 56 / 45%);
+  border-left-color: #d89a38;
 }
 
 .notification-region[data-type="error"] {
   color: var(--color-danger-700);
   background: var(--color-danger-50);
-  border-color: rgb(154 65 65 / 22%);
-}
-
-.notification-region[data-type="success"] {
-  border-left-color: var(--color-teal-600);
-}
-
-.notification-region[data-type="warning"] {
-  border-left-color: #d89a38;
-}
-
-.notification-region[data-type="error"] {
+  border-color: rgb(154 65 65 / 32%);
   border-left-color: var(--color-danger-700);
 }
 
@@ -729,15 +758,8 @@ textarea {
   }
 }
 
-a:focus-visible {
-  outline: 2px solid #71c7b9;
-  outline-offset: 3px;
-}
-
 .button-primary:disabled {
   cursor: wait;
-  opacity: 0.72;
-  transform: none;
 }
 
 .employee-list-card {
@@ -869,7 +891,7 @@ a:focus-visible {
   display: inline-flex;
   padding: 0.28rem 0.58rem;
   border-radius: 999px;
-  color: var(--color-teal-600);
+  color: var(--color-teal-700);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: capitalize;
@@ -902,11 +924,11 @@ a:focus-visible {
   max-height: min(720px, calc(100vh - 32px));
   padding: var(--space-6);
   overflow: auto;
-  color: var(--color-gray-800);
+  color: var(--color-gray-900);
   background: var(--color-white);
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .employee-confirm-dialog {
@@ -914,11 +936,11 @@ a:focus-visible {
   max-height: calc(100vh - 32px);
   overflow: auto;
   padding: var(--space-6);
-  color: var(--color-gray-800);
+  color: var(--color-gray-900);
   background: var(--color-white);
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .employee-details-dialog::backdrop,
