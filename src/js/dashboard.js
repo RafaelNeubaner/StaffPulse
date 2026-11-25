@@ -12,6 +12,8 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
 
 const numberFormatter = new Intl.NumberFormat('pt-BR');
 
+const renderedDistributions = new WeakMap();
+
 export function initializeDashboard() {
   const dashboard = document.querySelector('#dashboard-indicators');
   const departmentDistribution = document.querySelector('#department-distribution');
@@ -21,32 +23,46 @@ export function initializeDashboard() {
     throw new Error('A estrutura de indicadores do Dashboard está incompleta.');
   }
 
-  const updateDashboard = () => {
+  const refreshDashboard = () => {
     const employees = getEmployees();
     const stats = getPayrollStats();
 
-    renderDashboardStats(dashboard, stats);
-    renderDashboardDistributions(departmentDistribution, roleDistribution, employees, stats);
+    renderDashboard({
+      dashboard,
+      departmentDistribution,
+      employees,
+      roleDistribution,
+      stats,
+    });
   };
 
-  updateDashboard();
-  return subscribeToEmployeeChanges(updateDashboard);
+  refreshDashboard();
+  return subscribeToEmployeeChanges(refreshDashboard);
+}
+
+export function renderDashboard({
+  dashboard,
+  departmentDistribution,
+  employees,
+  roleDistribution,
+  stats,
+}) {
+  renderDashboardStats(dashboard, stats);
+  renderDashboardDistributions(departmentDistribution, roleDistribution, employees, stats);
 }
 
 export function renderDashboardStats(dashboard, stats) {
-  dashboard.querySelector('#active-employees').textContent = numberFormatter.format(
-    stats.activeEmployees
-  );
-  dashboard.querySelector('#total-employees').textContent = numberFormatter.format(
-    stats.totalEmployees
-  );
-  dashboard.querySelector('#total-payroll').textContent = currencyFormatter.format(
-    stats.totalPayroll
-  );
-  dashboard.querySelector('#average-salary').textContent = currencyFormatter.format(
-    stats.averageSalary
-  );
+  updateText(dashboard, '#active-employees', numberFormatter.format(stats.activeEmployees));
+  updateText(dashboard, '#total-employees', numberFormatter.format(stats.totalEmployees));
+  updateText(dashboard, '#total-payroll', currencyFormatter.format(stats.totalPayroll));
+  updateText(dashboard, '#average-salary', currencyFormatter.format(stats.averageSalary));
+}
 
+function updateText(container, selector, text) {
+  const element = container.querySelector(selector);
+  if (element.textContent !== text) {
+    element.textContent = text;
+  }
 }
 
 export function renderDashboardDistributions(
@@ -83,13 +99,24 @@ export function renderDashboardDistributions(
 }
 
 function renderEmptyDistribution(container) {
+  const signature = 'empty';
+  if (renderedDistributions.get(container) === signature) {
+    return;
+  }
+
   const message = document.createElement('p');
   message.className = 'distribution-empty';
   message.textContent = 'Nenhum colaborador cadastrado.';
   container.replaceChildren(message);
+  renderedDistributions.set(container, signature);
 }
 
 function renderDistribution(container, entries, totalEmployees) {
+  const signature = JSON.stringify([entries, totalEmployees]);
+  if (renderedDistributions.get(container) === signature) {
+    return;
+  }
+
   const rows = entries.map(([label, count]) => {
     const row = document.createElement('li');
     row.className = 'distribution-row';
@@ -131,4 +158,5 @@ function renderDistribution(container, entries, totalEmployees) {
   list.className = 'distribution-list';
   list.append(...rows);
   container.replaceChildren(list);
+  renderedDistributions.set(container, signature);
 }

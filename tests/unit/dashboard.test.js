@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { calculatePayrollStats } from '../../src/js/employee-service.js';
-import { addEmployee, removeEmployee } from '../../src/js/employee-store.js';
+import {
+  addEmployee,
+  editEmployee,
+  removeEmployee,
+} from '../../src/js/employee-store.js';
 import {
   initializeDashboard,
   renderDashboardDistributions,
@@ -12,7 +16,20 @@ class ElementStub {
     this.attributes = {};
     this.children = [];
     this.style = {};
-    this.textContent = '';
+    this.textContentUpdates = 0;
+    this.replaceChildrenCalls = 0;
+    this._textContent = '';
+  }
+
+  get textContent() {
+    return this._textContent;
+  }
+
+  set textContent(value) {
+    if (this._textContent !== value) {
+      this.textContentUpdates += 1;
+      this._textContent = value;
+    }
   }
 
   append(...children) {
@@ -20,6 +37,7 @@ class ElementStub {
   }
 
   replaceChildren(...children) {
+    this.replaceChildrenCalls += 1;
     this.children = children;
     this.textContent = '';
   }
@@ -32,7 +50,7 @@ class ElementStub {
 function createDashboardElements() {
   const values = new Map(
     ['#active-employees', '#total-employees', '#total-payroll', '#average-salary'].map(
-      (selector) => [selector, { textContent: '' }]
+      (selector) => [selector, new ElementStub()]
     )
   );
 
@@ -82,12 +100,20 @@ describe('Dashboard indicators', () => {
       [],
       stats
     );
+    renderDashboardDistributions(
+      elements.departmentDistribution,
+      elements.roleDistribution,
+      [],
+      stats
+    );
     expect(elements.departmentDistribution.children[0].textContent).toBe(
       'Nenhum colaborador cadastrado.'
     );
     expect(elements.roleDistribution.children[0].textContent).toBe(
       'Nenhum colaborador cadastrado.'
     );
+    expect(elements.departmentDistribution.replaceChildrenCalls).toBe(1);
+    expect(elements.roleDistribution.replaceChildrenCalls).toBe(1);
   });
 
   it('should render payroll indicators using service results', () => {
@@ -103,6 +129,14 @@ describe('Dashboard indicators', () => {
     expect(elements.values.get('#total-employees').textContent).toBe('2');
     expect(elements.values.get('#total-payroll').textContent).toContain('11.000,00');
     expect(elements.values.get('#average-salary').textContent).toContain('5.500,00');
+
+    const textUpdateCounts = [...elements.values.values()].map(
+      (element) => element.textContentUpdates
+    );
+    renderDashboardStats(elements.dashboard, stats);
+    expect([...elements.values.values()].map((element) => element.textContentUpdates)).toEqual(
+      textUpdateCounts
+    );
   });
 
   it('should render department and role distributions from employee records and service stats', () => {
@@ -115,6 +149,12 @@ describe('Dashboard indicators', () => {
     const stats = calculatePayrollStats(employees);
     vi.stubGlobal('document', { createElement: () => new ElementStub() });
 
+    renderDashboardDistributions(
+      elements.departmentDistribution,
+      elements.roleDistribution,
+      employees,
+      stats
+    );
     renderDashboardDistributions(
       elements.departmentDistribution,
       elements.roleDistribution,
@@ -134,6 +174,8 @@ describe('Dashboard indicators', () => {
     expect(roleRows).toHaveLength(2);
     expect(roleRows[0].children[0].children[0].textContent).toBe('Analista');
     expect(roleRows[0].children[0].children[1].textContent).toBe('2');
+    expect(elements.departmentDistribution.replaceChildrenCalls).toBe(1);
+    expect(elements.roleDistribution.replaceChildrenCalls).toBe(1);
   });
 
   it('should refresh dashboard indicators when the employee store changes', () => {
@@ -163,6 +205,33 @@ describe('Dashboard indicators', () => {
       expect(
         elements.roleDistribution.children[0].children[0].children[0].children[0].textContent
       ).toBe('Engenheira de Software');
+
+      editEmployee(id, {
+        department: 'RH',
+        role: 'Gerente',
+        salary: 7800,
+        status: 'inativo',
+      });
+      expect(elements.values.get('#active-employees').textContent).toBe('0');
+      expect(elements.values.get('#total-payroll').textContent).toContain('7.800,00');
+      expect(
+        elements.departmentDistribution.children[0].children[0].children[0].children[0]
+          .textContent
+      ).toBe('TI');
+      expect(
+        elements.departmentDistribution.children[0].children[1].children[0].children[0]
+          .textContent
+      ).toBe('RH');
+      expect(
+        elements.roleDistribution.children[0].children[0].children[0].children[0].textContent
+      ).toBe('Gerente');
+
+      editEmployee(id, { status: 'ativo' });
+      expect(elements.values.get('#active-employees').textContent).toBe('1');
+
+      removeEmployee(id, { logical: true });
+      expect(elements.values.get('#active-employees').textContent).toBe('0');
+      expect(elements.values.get('#total-employees').textContent).toBe('1');
 
       removeEmployee(id);
       expect(elements.values.get('#total-employees').textContent).toBe('0');
