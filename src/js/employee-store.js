@@ -32,16 +32,14 @@ export function createEmployeeStore(storage = getBrowserStorage()) {
   }
 
   function persist(nextEmployees) {
-    employees = nextEmployees;
-
     try {
       saveEmployeeRecords(storage, nextEmployees);
     } catch (error) {
       storageError = error;
-      notifySubscribers();
       throw error;
     }
 
+    employees = nextEmployees;
     storageError = null;
     notifySubscribers();
   }
@@ -72,19 +70,16 @@ export function createEmployeeStore(storage = getBrowserStorage()) {
 
     addEmployee(employeeData) {
       persist(createEmployee(employeeData, employees));
-      storageError = null;
       return employees;
     },
 
     editEmployee(id, updates) {
       persist(updateEmployee(id, updates, employees));
-      storageError = null;
       return employees;
     },
 
     removeEmployee(id, options) {
       persist(deleteEmployee(id, employees, options));
-      storageError = null;
       return employees;
     },
 

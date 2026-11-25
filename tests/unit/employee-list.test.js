@@ -371,6 +371,7 @@ describe('Employee list', () => {
       findAction('Inativar Rita Gomes').listeners.get('click')();
       confirmButton.listeners.get('click')();
       expect(getEmployees().find(({ id }) => id === employeeId).status).toBe('inativo');
+      expect(elements['#employee-search'].focused).toBe(true);
       expect(getRenderedText(container)).toContain('inativo');
       expect(findAction('Inativar Rita Gomes')).toBeUndefined();
       expect(feedback.children[0].textContent).toBe('Rita Gomes foi inativado com sucesso.');
@@ -388,6 +389,7 @@ describe('Employee list', () => {
 
       confirmButton.listeners.get('click')();
       expect(getEmployees().some(({ id }) => id === employeeId)).toBe(false);
+      expect(elements['#employee-search'].focused).toBe(true);
       expect(getRenderedText(container)).toContain('Nenhum colaborador cadastrado.');
       expect(feedback.children[0].textContent).toBe('Rita Gomes foi excluído permanentemente.');
     } finally {

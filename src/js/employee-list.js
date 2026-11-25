@@ -148,6 +148,7 @@ export function initializeEmployeeList() {
         { type: 'success' }
       );
       closeOperationDialog();
+      searchInput.focus();
     } catch (error) {
       if (!(error instanceof Error)) {
         throw error;

@@ -113,17 +113,25 @@ describe('Employee store', () => {
   });
 
   it('should preserve state when persistence fails', () => {
+    let shouldFail = false;
     const failingStorage = {
       getItem() {
         return null;
       },
       setItem() {
-        throw new Error('storage unavailable');
+        if (shouldFail) {
+          throw new Error('storage unavailable');
+        }
       },
     };
     const failingStore = createEmployeeStore(failingStorage);
+    const observedChanges = [];
+    failingStore.subscribe((employees) => observedChanges.push(employees));
 
-    expect(() => failingStore.addEmployee({ ...employeeData, id: 'emp-1' })).toThrow(
+    failingStore.addEmployee({ ...employeeData, id: 'emp-1' });
+    shouldFail = true;
+
+    expect(() => failingStore.addEmployee({ ...employeeData, id: 'emp-2' })).toThrow(
       'Não foi possível persistir os colaboradores.'
     );
     expect(failingStore.getEmployees()).toHaveLength(1);
@@ -131,7 +139,13 @@ describe('Employee store', () => {
     expect(() => failingStore.editEmployee('emp-1', { salary: 7000 })).toThrow(
       'Não foi possível persistir os colaboradores.'
     );
-    expect(failingStore.getEmployees()[0].salary).toBe(7000);
+    expect(failingStore.getEmployees()[0].salary).toBe(6500);
+
+    expect(() => failingStore.removeEmployee('emp-1')).toThrow(
+      'Não foi possível persistir os colaboradores.'
+    );
+    expect(failingStore.getEmployees()).toHaveLength(1);
+    expect(observedChanges).toHaveLength(1);
   });
 
   it('should expose storage corruption and persistence errors consistently', () => {
@@ -157,7 +171,7 @@ describe('Employee store', () => {
     }
 
     expect(persistenceError).toBeInstanceOf(PersistenceError);
-    expect(failingStore.getEmployees()).toHaveLength(1);
+    expect(failingStore.getEmployees()).toHaveLength(0);
     expect(failingStore.getStorageError()).toBeInstanceOf(PersistenceError);
   });
 });
