@@ -21,6 +21,8 @@ O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em
   - `validateSalary(salary)`: Valida números positivos iguais ou superiores ao piso mínimo legal (`R$ 1.412,00`).
   - `validateAdmissionDate(date)`: Valida formato cronológico `YYYY-MM-DD`, existência no calendário e impede datas futuras.
   - `validateDepartment(dept)`: Valida contra a lista pré-aprovada de setores (`TI`, `RH`, `Vendas`, `Financeiro`).
+  - `validateStatus(status)`: Aceita somente `ativo` ou `inativo`.
+  - Erros de validação são instâncias de `ValidationError`, com `field` identificando o campo inválido e `message` preservando a mensagem em português.
 - **Serviço de Colaboradores (`src/js/employee-service.js`):**
   - `createEmployee(data, store)`: Cria registro com ID único e imutabilidade (`Object.freeze`).
   - `updateEmployee(id, updates, store)`: Atualiza dados cadastrais preservando ID e imutabilidade.
@@ -64,7 +66,7 @@ Ferramentas de IA generativa foram empregadas como apoio técnico nas seguintes 
    npm install
    ```
 
-2. **Executar os 30 testes unitários:**
+2. **Executar os testes unitários:**
    ```bash
    npm test
    ```

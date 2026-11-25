@@ -74,6 +74,24 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
       expect(Object.isFrozen(updatedStore[0])).toBe(true);
     });
 
+    it('should normalize accepted statuses and reject unsupported statuses with a field error', () => {
+      const created = createEmployee({ ...baseEmployeeData, status: 'INATIVO' });
+      expect(created[0].status).toBe('inativo');
+
+      let thrownError;
+      try {
+        createEmployee({ ...baseEmployeeData, status: 'pendente' });
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toMatchObject({
+        name: 'ValidationError',
+        field: 'status',
+        message: 'Status inválido. Os valores permitidos são: ativo, inativo.',
+      });
+    });
+
     it('should throw an error when trying to create an employee with an existing ID in the store', () => {
       // Given
       const storeWithOne = createEmployee({ ...baseEmployeeData, id: 'emp-100' }, []);
@@ -117,6 +135,23 @@ describe('Serviço de Colaboradores (employee-service.js)', () => {
       expect(() => updateEmployee('emp-999', { salary: 7000 }, store)).toThrow(
         'Colaborador não encontrado.'
       );
+    });
+
+    it('should reject unsupported status updates without changing the existing employee', () => {
+      const store = createEmployee({ ...baseEmployeeData, id: 'emp-1' }, []);
+      let thrownError;
+
+      try {
+        updateEmployee('emp-1', { status: 'pendente' }, store);
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toMatchObject({
+        name: 'ValidationError',
+        field: 'status',
+      });
+      expect(store[0].status).toBe('ativo');
     });
 
     it('should throw an error when given invalid update parameters or invalid store', () => {

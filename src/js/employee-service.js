@@ -4,6 +4,7 @@ import {
   validateSalary,
   validateAdmissionDate,
   validateDepartment,
+  validateStatus,
 } from './validators.js';
 
 let idSequence = 1;
@@ -14,6 +15,8 @@ function normalizeEmployeeRecord(data, id) {
   validateSalary(data.salary);
   validateAdmissionDate(data.admissionDate);
   validateDepartment(data.department);
+  const status = data.status === undefined ? 'ativo' : String(data.status).trim().toLowerCase();
+  validateStatus(status);
 
   return Object.freeze({
     id,
@@ -23,7 +26,7 @@ function normalizeEmployeeRecord(data, id) {
     admissionDate: data.admissionDate.trim(),
     department: data.department.trim(),
     role: data.role ? String(data.role).trim() : 'Analista',
-    status: data.status ? String(data.status).trim().toLowerCase() : 'ativo',
+    status,
   });
 }
 

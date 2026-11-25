@@ -1,9 +1,18 @@
 export const ALLOWED_DEPARTMENTS = Object.freeze(['TI', 'RH', 'Vendas', 'Financeiro']);
+export const ALLOWED_STATUSES = Object.freeze(['ativo', 'inativo']);
 export const MIN_LEGAL_SALARY = 1412;
 
 const NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+)*$/;
 const EMAIL_REGEX = /^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
 const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+export class ValidationError extends Error {
+  constructor(field, message) {
+    super(message);
+    this.name = 'ValidationError';
+    this.field = field;
+  }
+}
 
 /**
  * Garante nome não vazio, mínimo de 3 caracteres e apenas letras e espaços.
@@ -12,16 +21,16 @@ const ISO_DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})$/;
  */
 export function validateName(name) {
   if (typeof name !== 'string' || name.trim().length === 0) {
-    throw new Error('O nome é obrigatório.');
+    throw new ValidationError('name', 'O nome é obrigatório.');
   }
 
   const trimmed = name.trim();
   if (trimmed.length < 3) {
-    throw new Error('O nome deve possuir no mínimo 3 caracteres.');
+    throw new ValidationError('name', 'O nome deve possuir no mínimo 3 caracteres.');
   }
 
   if (!NAME_REGEX.test(trimmed)) {
-    throw new Error('O nome deve conter apenas letras.');
+    throw new ValidationError('name', 'O nome deve conter apenas letras.');
   }
 
   return true;
@@ -34,12 +43,12 @@ export function validateName(name) {
  */
 export function validateEmail(email) {
   if (typeof email !== 'string' || email.trim().length === 0) {
-    throw new Error('O e-mail é obrigatório.');
+    throw new ValidationError('email', 'O e-mail é obrigatório.');
   }
 
   const trimmed = email.trim();
   if (!EMAIL_REGEX.test(trimmed)) {
-    throw new Error('Formato de e-mail corporativo inválido.');
+    throw new ValidationError('email', 'Formato de e-mail corporativo inválido.');
   }
 
   return true;
@@ -58,20 +67,23 @@ export function validateSalary(salary, minWage = MIN_LEGAL_SALARY) {
     typeof salary === 'boolean' ||
     (typeof salary === 'string' && salary.trim() === '')
   ) {
-    throw new Error('O salário é obrigatório e deve ser numérico.');
+    throw new ValidationError('salary', 'O salário é obrigatório e deve ser numérico.');
   }
 
   const numericSalary = Number(salary);
   if (!Number.isFinite(numericSalary)) {
-    throw new Error('O salário deve ser um número válido.');
+    throw new ValidationError('salary', 'O salário deve ser um número válido.');
   }
 
   if (numericSalary <= 0) {
-    throw new Error('O salário deve ser um número positivo.');
+    throw new ValidationError('salary', 'O salário deve ser um número positivo.');
   }
 
   if (numericSalary < minWage) {
-    throw new Error(`O salário não pode ser inferior ao piso mínimo legal (${minWage}).`);
+    throw new ValidationError(
+      'salary',
+      `O salário não pode ser inferior ao piso mínimo legal (${minWage}).`
+    );
   }
 
   return true;
@@ -84,13 +96,16 @@ export function validateSalary(salary, minWage = MIN_LEGAL_SALARY) {
  */
 export function validateAdmissionDate(date) {
   if (typeof date !== 'string' || date.trim().length === 0) {
-    throw new Error('A data de admissão é obrigatória.');
+    throw new ValidationError('admissionDate', 'A data de admissão é obrigatória.');
   }
 
   const trimmed = date.trim();
   const match = trimmed.match(ISO_DATE_REGEX);
   if (!match) {
-    throw new Error('A data de admissão deve estar no formato cronológico YYYY-MM-DD.');
+    throw new ValidationError(
+      'admissionDate',
+      'A data de admissão deve estar no formato cronológico YYYY-MM-DD.'
+    );
   }
 
   const year = Number(match[1]);
@@ -104,13 +119,19 @@ export function validateAdmissionDate(date) {
     parsedDate.getUTCDate() !== day ||
     year < 1900
   ) {
-    throw new Error('A data de admissão informada é calendariamente inválida.');
+    throw new ValidationError(
+      'admissionDate',
+      'A data de admissão informada é calendariamente inválida.'
+    );
   }
 
   const now = new Date();
   const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   if (parsedDate.getTime() > todayUTC) {
-    throw new Error('A data de admissão não pode ser uma data futura.');
+    throw new ValidationError(
+      'admissionDate',
+      'A data de admissão não pode ser uma data futura.'
+    );
   }
 
   return true;
@@ -123,13 +144,35 @@ export function validateAdmissionDate(date) {
  */
 export function validateDepartment(dept) {
   if (typeof dept !== 'string' || dept.trim().length === 0) {
-    throw new Error('O departamento é obrigatório.');
+    throw new ValidationError('department', 'O departamento é obrigatório.');
   }
 
   const trimmed = dept.trim();
   if (!ALLOWED_DEPARTMENTS.includes(trimmed)) {
-    throw new Error(
+    throw new ValidationError(
+      'department',
       `Departamento inválido. Os setores permitidos são: ${ALLOWED_DEPARTMENTS.join(', ')}.`
+    );
+  }
+
+  return true;
+}
+
+/**
+ * Garante que o status do colaborador seja ativo ou inativo.
+ * @param {string} status
+ * @returns {boolean}
+ */
+export function validateStatus(status) {
+  if (typeof status !== 'string' || status.trim().length === 0) {
+    throw new ValidationError('status', 'O status é obrigatório.');
+  }
+
+  const normalizedStatus = status.trim().toLowerCase();
+  if (!ALLOWED_STATUSES.includes(normalizedStatus)) {
+    throw new ValidationError(
+      'status',
+      `Status inválido. Os valores permitidos são: ${ALLOWED_STATUSES.join(', ')}.`
     );
   }
 

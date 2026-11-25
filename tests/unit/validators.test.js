@@ -5,9 +5,34 @@ import {
   validateSalary,
   validateAdmissionDate,
   validateDepartment,
+  validateStatus,
+  ValidationError,
 } from '../../src/js/validators.js';
 
 describe('Módulo de Validações (validators.js)', () => {
+  it('should identify the field for errors from every validator', () => {
+    const invalidValidations = [
+      [() => validateName(''), 'name'],
+      [() => validateEmail('invalid'), 'email'],
+      [() => validateSalary('invalid'), 'salary'],
+      [() => validateAdmissionDate('invalid'), 'admissionDate'],
+      [() => validateDepartment('Marketing'), 'department'],
+      [() => validateStatus('pendente'), 'status'],
+    ];
+
+    for (const [validate, field] of invalidValidations) {
+      let thrownError;
+      try {
+        validate();
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(ValidationError);
+      expect(thrownError.field).toBe(field);
+    }
+  });
+
   describe('validateName', () => {
     it('should return true when given a valid name with at least 3 letters and accents', () => {
       // Given
@@ -34,6 +59,22 @@ describe('Módulo de Validações (validators.js)', () => {
       // When / Then
       expect(() => validateName(nameWithNumbers)).toThrow('O nome deve conter apenas letras.');
       expect(() => validateName(nameWithSymbols)).toThrow('O nome deve conter apenas letras.');
+    });
+
+    it('should include the field name in validation errors', () => {
+      let thrownError;
+
+      try {
+        validateName('');
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(ValidationError);
+      expect(thrownError).toMatchObject({
+        field: 'name',
+        message: 'O nome é obrigatório.',
+      });
     });
   });
 
@@ -155,6 +196,30 @@ describe('Módulo de Validações (validators.js)', () => {
       // When / Then
       expect(() => validateDepartment(emptyDept)).toThrow('O departamento é obrigatório.');
       expect(() => validateDepartment(undefined)).toThrow('O departamento é obrigatório.');
+    });
+  });
+
+  describe('validateStatus', () => {
+    it('should accept active and inactive statuses regardless of letter case', () => {
+      expect(validateStatus('ativo')).toBe(true);
+      expect(validateStatus('INATIVO')).toBe(true);
+    });
+
+    it('should throw a field-specific error for blank or unsupported statuses', () => {
+      expect(() => validateStatus('')).toThrow('O status é obrigatório.');
+
+      let thrownError;
+      try {
+        validateStatus('pendente');
+      } catch (error) {
+        thrownError = error;
+      }
+
+      expect(thrownError).toBeInstanceOf(ValidationError);
+      expect(thrownError).toMatchObject({
+        field: 'status',
+        message: 'Status inválido. Os valores permitidos são: ativo, inativo.',
+      });
     });
   });
 });
