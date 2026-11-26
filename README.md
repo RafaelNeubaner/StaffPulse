@@ -119,7 +119,7 @@ A plataforma configurada é **GitHub Pages**, adequada à arquitetura estática 
 
 URL pública ativa: https://rafaelneubaner.github.io/StaffPulse/
 
-Depois de habilitado, atualizações enviadas para `main` disparam a publicação automaticamente. A URL definitiva pode ser consultada no ambiente `github-pages` ou nas configurações de Pages do repositório.
+Assim, atualizações enviadas para `main` disparam a publicação automaticamente.
 
 ## Vídeo
 
