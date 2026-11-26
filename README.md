@@ -1,120 +1,124 @@
-# StaffPulse — Sistema de Cadastro e Gestão de Colaboradores
+# StaffPulse
 
-Sistema web de cadastro, filtragem, busca e análise de folha salarial de colaboradores desenvolvido em Vanilla JavaScript (ES Modules), HTML5 e CSS3, com suíte de testes unitários no Vitest e cobertura de código via V8.
+Sistema web para cadastro e gestão de colaboradores, com pesquisa, filtros e indicadores de folha salarial. A aplicação foi construída com JavaScript ES Modules, HTML5 e CSS3, sem framework de interface.
 
----
+## Integrantes
 
-## 1. Integrantes
+- **Rafael Neubaner de Almeida — Dev 1:** núcleo da aplicação, regras de domínio, validações, serviços de colaboradores e testes unitários.
+- **Kauê de Paiva Santos — Dev 2:** interface web, feedback visual, responsividade e acessibilidade, testes E2E com Playwright, CI/CD e configuração do deploy.
 
-- **Dev 1 (Core, Validações, Serviços de Domínio e Testes Unitários):** Rafael (`neubanerrafael@gmail.com`)
-- **Dev 2 (Interface Web, Testes E2E Playwright, CI/CD Multi-OS e Deploy):** *(Integrante 2)*
+## Sobre o sistema
 
----
+O StaffPulse ajuda a organizar os registros de colaboradores de uma organização. A interface oferece estes fluxos:
 
-## 2. Sobre o Sistema
+- **Dashboard:** consulta de colaboradores ativos e total de registros, folha salarial, salário médio e distribuições por departamento e cargo.
+- **Cadastro:** preenchimento dos dados do colaborador, validação dos campos e apresentação de notificações para sucesso ou falha.
+- **Consulta da equipe:** listagem, pesquisa por nome, filtros por departamento e status e ordenação por nome, salário ou data de admissão. Pesquisa e filtros podem ser combinados.
+- **Detalhes e edição:** visualização dos dados em um diálogo e atualização de um registro existente.
+- **Inativação ou exclusão:** confirmação da ação e atualização da listagem e dos indicadores.
 
-O **StaffPulse** permite gerenciar o ciclo de vida cadastral de colaboradores em uma organização, contemplando:
+Os registros são salvos no `localStorage` do navegador. Eles permanecem naquele navegador após recarregar a página, mas não são compartilhados entre usuários ou dispositivos. O sistema não possui backend ou banco de dados remoto.
 
-- **Módulo de Validações (`src/js/validators.js`):**
-  - `validateName(name)`: Garante nome não vazio, mínimo de 3 caracteres e apenas letras/acentos.
-  - `validateEmail(email)`: Valida estrutura de e-mail corporativo com expressão regular e domínio válido.
-  - `validateSalary(salary)`: Valida números positivos iguais ou superiores ao piso mínimo legal (`R$ 1.412,00`).
-  - `validateAdmissionDate(date)`: Valida formato cronológico `YYYY-MM-DD`, existência no calendário e impede datas futuras.
-  - `validateDepartment(dept)`: Valida contra a lista pré-aprovada de setores (`TI`, `RH`, `Vendas`, `Financeiro`).
-  - `validateStatus(status)`: Aceita somente `ativo` ou `inativo`.
-  - Erros de validação são instâncias de `ValidationError`, com `field` identificando o campo inválido e `message` preservando a mensagem em português.
-- **Serviço de Colaboradores (`src/js/employee-service.js`):**
-  - `createEmployee(data, store)`: Cria registro com ID único e imutabilidade (`Object.freeze`).
-  - `updateEmployee(id, updates, store)`: Atualiza dados cadastrais preservando ID e imutabilidade.
-  - `deleteEmployee(id, store, options)`: Executa remoção física ou lógica (`status: 'inativo'`).
-  - `filterEmployees(list, criteria)` & `sortEmployees(list, sortBy, order)`: Filtro combinado por departamento e status com suporte a ordenação.
-  - `searchByName(list, query)`: Busca textual insensível a maiúsculas/minúsculas.
-  - `calculatePayrollStats(list)`: Calcula soma total da folha salarial, média salarial, total de colaboradores ativos e contagem por cargo.
+## Tecnologias
 
-- **Camada de integração (`src/js/employee-store.js`):**
-  - Mantém o estado atual em uma store desacoplada da interface.
-  - Encaminha CRUD, busca, filtros, ordenação e estatísticas para os serviços de domínio.
-  - Persiste os registros no `localStorage` sem armazenar dados fictícios.
-  - Preserva IDs existentes e não perde o estado atual em memória quando a gravação falha.
-- **Repositório de persistência (`src/js/employee-repository.js`):**
-  - Recupera e valida o formato da lista armazenada no navegador.
-  - Exibe `StorageError` para dados inacessíveis ou corrompidos e `PersistenceError` para falhas de gravação.
-- **Dashboard (`src/js/dashboard.js`):**
-  - Apresenta colaboradores ativos e total cadastrado, folha salarial e salário médio.
-  - Exibe distribuições visuais por departamento e cargo; cargos vêm de `calculatePayrollStats`, departamentos dos registros validados.
-  - Atualiza os indicadores e distribuições quando a store notifica alterações nos colaboradores.
-- **Formulário de cadastro (`src/js/employee-form.js`):**
-  - Cria colaboradores usando a camada de integração e apresenta mensagens de sucesso ou erros do serviço.
-  - Preenche o seletor de departamentos a partir de `ALLOWED_DEPARTMENTS`, sem duplicar as regras de validação do domínio.
-- **Listagem e pesquisa (`src/js/employee-list.js`):**
-  - Apresenta os colaboradores persistidos em uma tabela e pesquisa por nome conforme o usuário digita.
-  - Combina pesquisa por nome com filtros de departamento/status e oferece ordenação por nome, salário ou data de admissão usando os serviços de domínio.
-  - Exibe detalhes do registro em um diálogo acessível, sem alterar os dados.
-  - Permite inativar ou excluir permanentemente após confirmação explícita, atualizando a lista e o Dashboard.
+- **JavaScript ES Modules:** implementa os serviços de domínio, a integração da interface e a lógica do sistema em módulos reutilizáveis.
+- **HTML5:** estrutura semântica da interface e dos formulários.
+- **CSS3:** identidade visual, estados interativos e adaptação da interface a diferentes tamanhos de tela.
+- **Vitest:** execução dos testes unitários.
+- **@vitest/coverage-v8:** coleta a cobertura de código usando o mecanismo V8.
+- **Playwright:** testa fluxos E2E pela interface em um navegador Chromium.
+- **GitHub Actions:** executa testes automaticamente em diferentes sistemas operacionais e automatiza a publicação no Pages quando habilitado.
+- **GitHub Pages:** plataforma gratuita escolhida para hospedar os arquivos estáticos do projeto.
 
----
+## Uso de IA
 
-## 3. Tecnologias Utilizadas
+O **OpenAI Codex** foi utilizado como ferramenta de apoio ao desenvolvimento. A assistência incluiu análise da estrutura existente, implementação e revisão de partes da interface, feedback visual, responsividade, acessibilidade, testes E2E, automação de CI/CD e configuração de publicação. Também apoiou a análise de erros e a documentação.
 
-- **Linguagem & Arquitetura:** JavaScript ES6+ (ES Modules desacoplados do DOM), HTML5 Semântico, CSS3
-- **Testes Unitários:** [Vitest](https://vitest.dev/) (`v5.1.0`)
-- **Cobertura de Código:** `@vitest/coverage-v8` (meta $\ge 80\%$; relatório mais recente: 95,93% statements, 93,55% branches, 95,76% functions e 95,97% lines)
-- **Testes End-to-End (Dev 2):** Playwright
-- **Integração Contínua (Dev 2):** GitHub Actions em push e pull request (`ubuntu-latest`, `macos-latest`, `windows-latest`), com testes unitários, cobertura e Playwright.
+As sugestões e alterações foram revisadas pelos integrantes. O comportamento foi validado com os testes unitários e E2E; a cobertura indicada neste documento foi gerada executando o comando descrito abaixo.
 
----
-
-## 4. Uso de IA
-
-Ferramentas de IA generativa foram empregadas como apoio técnico nas seguintes tarefas:
-
-1. **Expressões Regulares (`src/js/validators.js`):**
-   - Elaboração e refinamento das expressões regulares para validação de nomes com acentuação latina (`/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+)*$/`), estrutura de e-mail corporativo (`/^[a-zA-Z0-9]+([._+-][a-zA-Z0-9]+)*@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/`) e formato de data ISO (`YYYY-MM-DD`).
-2. **Fixtures e Casos de Teste Unitários (`tests/unit/`):**
-   - Geração de cenários de borda (valores limites de piso salarial, datas bissextas/inexistentes como `2023-02-30`, entradas nulas/indefinidas) estruturados no padrão *Given-When-Then* / *Should-When*.
-
----
-
-## 5. Instruções Claras de Execução Local
+## Execução local
 
 ### Pré-requisitos
-- **Node.js 24** e **npm** instalados.
 
-### Passo a passo
+- Node.js 24 e npm.
+- Chromium instalado pelo Playwright para executar os testes E2E.
 
-1. **Instalar as dependências do projeto:**
-   ```bash
-   npm ci
-   ```
+### Instalar dependências
 
-2. **Iniciar a estrutura inicial da interface:**
-   ```bash
-   npm run serve
-   ```
-   Acesse `http://127.0.0.1:4173` no navegador.
+Na raiz do repositório, execute:
 
-3. **Executar os testes unitários:**
-   ```bash
-   npm test
-   ```
+```bash
+npm ci
+```
 
-4. **Executar os testes unitários com relatório de cobertura (c8/v8):**
-   ```bash
-   npm run test:unit
-   ```
-   O Vitest falha quando statements, branches, functions ou lines ficam abaixo de 80%.
+### Iniciar a aplicação
 
-5. **Instalar o Chromium do Playwright e executar os testes E2E:**
-   ```bash
-   npm run test:e2e:install
-   npm run test:e2e
-   ```
-   O Playwright inicia e encerra o servidor local automaticamente.
-   A suíte cobre navegação, cadastro válido e inválido, pesquisa e filtros, edição e inativação.
-   Cada cenário usa um contexto de navegador isolado, incluindo seu próprio `localStorage`.
+```bash
+npm run serve
+```
 
-## 6. Integração contínua
+Abra <http://127.0.0.1:4173> no navegador. Os dados ficam armazenados no `localStorage` desse navegador.
 
-O workflow [`ci.yml`](.github/workflows/ci.yml) é executado em cada push e pull request. Ele usa Node.js 24 e executa `npm ci`, os testes unitários, a cobertura com os limites configurados e os testes E2E nas três plataformas: Ubuntu, macOS e Windows. Os relatórios de cobertura e do Playwright são anexados à execução como artefatos.
+### Testes unitários
 
-Para acompanhar uma execução no GitHub, abra a aba **Actions**, selecione **StaffPulse CI** e depois a execução desejada. Cada sistema operacional aparece como um job separado; seus logs mostram o resultado de cada etapa, e a seção **Artifacts** disponibiliza os relatórios gerados.
+```bash
+npm test
+```
+
+### Testes unitários com cobertura
+
+```bash
+npm run test:unit
+```
+
+### Testes E2E
+
+Instale o Chromium uma vez:
+
+```bash
+npm run test:e2e:install
+```
+
+Depois execute:
+
+```bash
+npm run test:e2e
+```
+
+O Playwright inicia o servidor local definido em `playwright.config.js`. A suíte cobre navegação, cadastro válido e inválido, pesquisa e filtro, edição e inativação.
+
+### Suíte completa
+
+Este comando executa a suíte unitária com cobertura e, em seguida, os testes E2E:
+
+```bash
+npm run test:unit && npm run test:e2e
+```
+
+## Cobertura de testes
+
+A cobertura é gerada pelo Vitest com `@vitest/coverage-v8`. Para gerar o relatório:
+
+```bash
+npm run test:unit
+```
+
+O relatório HTML fica em `coverage/index.html`; o relatório LCOV fica em `coverage/lcov.info`. Abra `coverage/index.html` no navegador para consultar os detalhes por arquivo.
+
+Resultado obtido nesta execução: **94,96% de statements, 92,88% de branches, 94,21% de functions e 95,12% de lines**. Foram aprovados **72 testes em 8 arquivos**. Os limites configurados no Vitest são 80% para cada métrica.
+
+## CI/CD
+
+O workflow [StaffPulse CI](https://github.com/RafaelNeubaner/TP-ES2/actions/workflows/ci.yml) é disparado em `push` e `pull_request`. Ele usa Node.js 24 e executa testes unitários, cobertura e E2E em Linux (`ubuntu-latest`), macOS (`macos-latest`) e Windows (`windows-latest`). Os relatórios de cobertura e Playwright são anexados às execuções como artefatos.
+
+O workflow [Deploy StaffPulse to GitHub Pages](https://github.com/RafaelNeubaner/TP-ES2/actions/workflows/deploy-pages.yml) executa em atualizações da branch `main` ou manualmente. Ele roda os testes unitários e E2E antes de preparar e publicar os arquivos estáticos.
+
+## Deploy
+
+A plataforma configurada é **GitHub Pages**, adequada à arquitetura estática do StaffPulse. A publicação ainda depende de um administrador ou mantenedor habilitar **Settings → Pages → Build and deployment → Source: GitHub Actions** no repositório. Até essa configuração e uma execução de deploy concluída com sucesso, **não há URL pública ativa confirmada**.
+
+Depois de habilitado, atualizações enviadas para `main` disparam a publicação automaticamente. A URL definitiva pode ser consultada no ambiente `github-pages` ou nas configurações de Pages do repositório.
+
+## Vídeo
+
+Link do vídeo de apresentação no YouTube: **a adicionar**.
