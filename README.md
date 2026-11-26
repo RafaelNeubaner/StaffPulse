@@ -115,7 +115,9 @@ O workflow [Deploy StaffPulse to GitHub Pages](https://github.com/RafaelNeubaner
 
 ## Deploy
 
-A plataforma configurada é **GitHub Pages**, adequada à arquitetura estática do StaffPulse. A publicação ainda depende de um administrador ou mantenedor habilitar **Settings → Pages → Build and deployment → Source: GitHub Actions** no repositório. Até essa configuração e uma execução de deploy concluída com sucesso, **não há URL pública ativa confirmada**.
+A plataforma configurada é **GitHub Pages**, adequada à arquitetura estática do StaffPulse. 
+
+URL pública ativa: https://rafaelneubaner.github.io/StaffPulse/
 
 Depois de habilitado, atualizações enviadas para `main` disparam a publicação automaticamente. A URL definitiva pode ser consultada no ambiente `github-pages` ou nas configurações de Pages do repositório.
 
