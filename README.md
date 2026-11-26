@@ -123,4 +123,4 @@ Depois de habilitado, atualizações enviadas para `main` disparam a publicaçã
 
 ## Vídeo
 
-Link do vídeo de apresentação no YouTube: **a adicionar**.
+Link do vídeo de apresentação no YouTube: https://youtu.be/19ZiyRz4Tto
